@@ -1,0 +1,196 @@
+\documentclass[12pt, letterpaper]{article}
+
+\input{template/preamble.tex}
+
+\input{template/listings_config.tex}
+
+% \input{template/header.tex}
+
+\begin{document}
+
+\input{template/title_page.tex}
+
+\section*{Objetivo}
+
+Analizar, diseñar e implementar una máquina de estados finitos a partir de una carta ASM, identificando
+el funcionamiento de los flip-flops tipo D como elementos de memoria. Obtener las funciones de estado
+siguiente y salida mediante el llenado de memoria y mapas de Karnaugh, para posteriormente comprobar
+su funcionamiento utilizando la FPGA DE10-Lite.
+
+\section*{Introducción}
+
+\section*{Desarrollo}
+
+\subsection*{Parte 1. Análisis y diseño de la máquina de estados}
+
+A partir de la carta ASM proporcionada en la Figura 1:
+
+\begin{enumerate}
+    \item Identifique los estados, entradas y salidas de la máquina.
+    \begin{itemize}
+        \item \textcolor{red}{\textbf{Estados:} El sistema cuenta con 4 estados definidos en los rectángulos: \texttt{EST0}, \texttt{EST1}, \texttt{EST2} y \texttt{EST3}.}
+        \item \textcolor{red}{\textbf{Entradas:} Las condiciones de transición (rombos) evalúan dos variables: $X$ e $Y$.}
+        \item \textcolor{red}{\textbf{Salidas:} Dentro de los bloques de estado se activan las señales $S_1$ y $S_0$. Al estar dentro de los rectángulos, se trata de una máquina de Moore.}
+        \begin{itemize}
+            \item \textcolor{red}{En EST0: Se activa $S_1$.}
+            \item \textcolor{red}{En EST1: Se activa $S_0$.}
+            \item \textcolor{red}{En EST2: No hay salidas activas.}
+            \item \textcolor{red}{En EST3: Se activan $S_1$ y $S_0$.}
+        \end{itemize}
+    \end{itemize}
+        \item Determine el número de bits necesarios para representar los estados y proponga una codificación.
+    \par\textcolor{red}{Dado que se tienen 4 estados, se calcula el número de bits $n$ necesarios usando $2^n \geq 4$, resultando en $n = 2$ bits. Se utilizarán dos variables de estado ($Q_1$ y $Q_0$) que corresponden a dos Flip-Flops tipo D. La codificación binaria propuesta es:}
+    \begin{itemize}
+        \item \textcolor{red}{\texttt{EST0} = $00$}
+        \item \textcolor{red}{\texttt{EST1} = $01$}
+        \item \textcolor{red}{\texttt{EST2} = $10$}
+        \item \textcolor{red}{\texttt{EST3} = $11$}
+    \end{itemize}
+
+    \item Obtenga la tabla de transiciones, considerando el estado actual y las entradas del sistema.
+    \par\textcolor{red}{A partir de la carta ASM, la tabla de transiciones muestra el estado siguiente ($Q_1(t+1) Q_0(t+1)$) en función del estado actual ($E_1(t) E_0(t)$) y las combinaciones de las entradas $X$ e $Y$:}
+    \begin{center}
+        \color{red}
+        \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \textbf{Estado Actual} & \multicolumn{4}{c|}{\textbf{Entradas $X Y$}} \\
+        \cline{2-5}
+        $E_1(t) E_0(t)$ & $00$ & $01$ & $11$ & $10$ \\
+        \hline
+        $00$ (\texttt{EST0}) & $11$ & $11$ & $01$ & $00$ \\
+        $01$ (\texttt{EST1}) & $01$ & $11$ & $10$ & $01$ \\
+        $10$ (\texttt{EST2}) & $11$ & $11$ & $11$ & $11$ \\
+        $11$ (\texttt{EST3}) & $00$ & $00$ & $00$ & $00$ \\
+        \hline
+        \end{tabular}
+    \end{center}
+
+    \item Determine para cada combinación: Estado actual, Entradas, Estado siguiente, Salidas.
+    \par\textcolor{red}{Los incisos 3 y 4 se resuelven de manera conjunta en la siguiente tabla de verdad general de la máquina de estados:}
+    \begin{center}
+        \color{red}
+        \begin{tabular}{|cc|cc|cc|cc|}
+        \hline
+        \multicolumn{2}{|c|}{\textbf{Estado Actual}} & \multicolumn{2}{c|}{\textbf{Entradas}} & \multicolumn{2}{c|}{\textbf{Estado Siguiente}} & \multicolumn{2}{c|}{\textbf{Salidas}} \\
+        $E_1(t)$ & $E_0(t)$ & $X$ & $Y$ & $Q_1(t+1)$ & $Q_0(t+1)$ & $S_1$ & $S_0$ \\
+        \hline
+        0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
+        0 & 0 & 0 & 1 & 0 & 0 & 1 & 0 \\
+        0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 \\
+        0 & 0 & 1 & 1 & 0 & 1 & 1 & 0 \\
+        \hline
+        0 & 1 & 0 & 0 & 0 & 1 & 0 & 1 \\
+        0 & 1 & 0 & 1 & 0 & 1 & 0 & 1 \\
+        0 & 1 & 1 & 0 & 0 & 1 & 0 & 1 \\
+        0 & 1 & 1 & 1 & 1 & 0 & 0 & 1 \\
+        \hline
+        1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 \\
+        1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 \\
+        1 & 0 & 1 & 0 & 1 & 1 & 0 & 0 \\
+        1 & 0 & 1 & 1 & 1 & 1 & 0 & 0 \\
+        \hline
+        1 & 1 & 0 & 0 & 0 & 0 & 1 & 1 \\
+        1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 \\
+        1 & 1 & 1 & 0 & 0 & 0 & 1 & 1 \\
+        1 & 1 & 1 & 1 & 0 & 0 & 1 & 1 \\
+        \hline
+        \end{tabular}
+    \end{center}
+
+    \item Obtenga los mapas de Karnaugh correspondientes a cada entrada de los flip-flops tipo D y a las señales de salida.
+    \begin{center}
+        \color{red}
+        \textbf{Mapa para $Q_1(t+1)$:}\\
+        \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        $E_1 E_0 \backslash X Y$ & 00 & 01 & 11 & 10 \\
+        \hline
+        00 & 0 & 0 & 1 & 0 \\
+        01 & 1 & 1 & 0 & 1 \\
+        11 & 0 & 0 & 0 & 0 \\
+        10 & 1 & 1 & 1 & 1 \\
+        \hline
+        \end{tabular}
+        \vspace{0.5cm}
+
+        \textbf{Mapa para $Q_0(t+1)$:}\\
+        \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        $E_1 E_0 \backslash X Y$ & 00 & 01 & 11 & 10 \\
+        \hline
+        00 & 0 & 0 & 0 & 0 \\
+        01 & 0 & 0 & 1 & 0 \\
+        11 & 0 & 0 & 0 & 0 \\
+        10 & 1 & 1 & 1 & 1 \\
+        \hline
+        \end{tabular}
+    \end{center}
+
+    \begin{center}
+        \color{red}
+        \textbf{Mapa para $S_1$:}\\
+        \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        $E_1 E_0 \backslash X Y$ & 00 & 01 & 11 & 10 \\
+        \hline
+        00 & 1 & 1 & 1 & 1 \\
+        01 & 0 & 0 & 0 & 0 \\
+        11 & 1 & 1 & 1 & 1 \\
+        10 & 0 & 0 & 0 & 0 \\
+        \hline
+        \end{tabular}
+        \vspace{0.5cm}
+
+        \textbf{Mapa para $S_0$:}\\
+        \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        $E_1 E_0 \backslash X Y$ & 00 & 01 & 11 & 10 \\
+        \hline
+        00 & 0 & 0 & 0 & 0 \\
+        01 & 1 & 1 & 1 & 1 \\
+        11 & 1 & 1 & 1 & 1 \\
+        10 & 0 & 0 & 0 & 0 \\
+        \hline
+        \end{tabular}
+    \end{center}
+
+    \item Simplifique las funciones booleanas.
+    \par\textcolor{red}{De los mapas de Karnaugh anteriores se deducen las siguientes expresiones booleanas simplificadas (suma de productos):}
+    \color{red}
+    \begin{align*}
+        Q_1(t+1) &= E_1 \overline{E_0} + \overline{E_1} E_0 \overline{X} + \overline{E_1} E_0 \overline{Y} + \overline{E_0} X Y \\
+        Q_0(t+1) &= E_1 \overline{E_0} + \overline{E_1} E_0 X Y \\
+        S_1 &= \overline{E_1} \overline{E_0} + E_1 E_0\\
+        Q_0 &= E_0\\
+    \end{align*}
+    \color{black}
+
+    % \item Dibuje el circuito resultante utilizando: Flip-flop tipo D, compuertas y lógica.
+    % \par\textcolor{red}{El circuito lógico se implementa conectando las ecuaciones resultantes $D_1$ y $D_0$ a las terminales $D$ de dos flip-flops, empleando compuertas NOT, AND y OR para formar los minitérminos. La salida $S_1$ requiere una compuerta XNOR entre $Q_1$ y $Q_0$, mientras que $S_0$ se toma directamente de la salida del segundo flip-flop. (Se recomienda anexar el diagrama esquemático generado en software en este apartado).}
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{carta_asm.png}
+    \caption{Carta ASM.}
+    \label{fig:ASM}
+\end{figure}
+
+\section*{Análisis de Resultados}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagen_ejemplo_1.png}
+    \caption{Ejemplo de Simulación.}
+    \label{fig:ASM}
+\end{figure}
+
+Se logra apreciar que en la simulación con las pruebas correspondientes del estado ...
+
+\section*{Conclusiones}
+
+% Conclusiones por integrante
+
+\input{template/biblio.tex}
+
+\end{document}

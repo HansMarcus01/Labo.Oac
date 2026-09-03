@@ -5,3 +5,9 @@ simulation/
 *.qpf
 *.qws
 *.vhd.bak
+*.aux
+*.log
+*.out
+*.bcf
+*.idx
+*.xml
