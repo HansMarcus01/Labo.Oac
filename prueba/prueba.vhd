@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity Prueba is
+entity prueba is
     port (
         -- Reloj de 50 MHz
         MAX10_CLK1_50 : in std_logic;
@@ -20,9 +20,9 @@ entity Prueba is
         HEX4 : out std_logic_vector(7 downto 0);
         HEX5 : out std_logic_vector(7 downto 0)
     );
-end Prueba;
+end prueba;
 
-architecture rtl of Prueba is
+architecture rtl of prueba is
     -- Señal para el divisor de reloj
     signal clk_counter : unsigned(25 downto 0) := (others => '0');
     
