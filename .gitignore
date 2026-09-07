@@ -11,3 +11,4 @@ simulation/
 *.bcf
 *.idx
 *.xml
+*.json
