@@ -274,9 +274,76 @@ Se implementó el mismo circuito mostrado en la figura \ref{fig:circuito_logico}
     \label{fig:programacion}
 \end{figure}
 
+\subsection*{2. Implementación en VHDL}
+
+La máquina de estados se implementó en VHDL mediante un divisor de frecuencia, dos registros de estado tipo D, lógica combinacional para el estado siguiente y las salidas conectadas a los LED de la FPGA.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Implementación de la máquina de estados en VHDL.},
+    label={lst:practica_2_vhdl}
+]{practica_2.vhd}
+
+El proceso de compilación y programación del circuito en la FPGA DE10-Lite se realizó de manera similar a la implementación en Block Diagram/Schematic File, obteniendo los mismos resultados.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{compilacion_vhd.png}
+    \caption{Compilación del circuito en Quartus.}
+    \label{fig:compilacion_vhd}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{programacion_vhd.png}
+    \caption{Programación del circuito en la FPGA DE10-Lite.}
+    \label{fig:programacion_vhd}
+\end{figure}
+
 \section*{Análisis de Resultados}
 
-Se logra apreciar que en la simulación con las pruebas correspondientes del estado ...
+\subsection*{Resultados en la De10-Lite}
+
+\begin{minipage}{0.45\textwidth}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{10.jpg}
+        \caption{Estado 0(S1=1, S0=0).}
+        \label{fig:estado_0}
+    \end{figure}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{00.jpg}
+        \caption{Estado 2(S1=0, S0=0).}
+        \label{fig:estado_2}
+    \end{figure}
+\end{minipage}
+\hfill
+\begin{minipage}{0.45\textwidth}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{01.jpg}
+        \caption{Estado 1(S1=0, S0=1).}
+        \label{fig:estado_1}
+    \end{figure}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{11.jpg}
+        \caption{Estado 3(S1=1, S0=1).}
+        \label{fig:estado_3}
+    \end{figure}
+\end{minipage}
+
+\subsection*{Discusión de Resultados}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{simulacion.png}
+    \caption{Resultados obtenidos en la FPGA DE10-Lite.}
+    \label{fig:resultados}
+\end{figure}
+
+Como podemos ver en la simulación para cada combinación de entradas, el sistema responde correctamente a la carta ASM, mostrando los estados y salidas esperadas. Esto confirma que la implementación de la máquina de estados finitos es correcta y funcional.
 
 \section*{Conclusiones}
 
