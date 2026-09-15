@@ -4,6 +4,8 @@
 
 \input{template/listings_config.tex}
 
+\usetikzlibrary{fit,tikzmark}
+
 % \input{template/header.tex}
 
 \begin{document}
@@ -12,50 +14,68 @@
 
 \section*{Objetivo}
 
-Analizar, diseñar e implementar una máquina de estados finitos a partir de una carta ASM, identificando
-el funcionamiento de los flip-flops tipo D como elementos de memoria. Obtener las funciones de estado
-siguiente y salida mediante el llenado de memoria y mapas de Karnaugh, para posteriormente comprobar
-su funcionamiento utilizando la FPGA DE10-Lite.
+Analizar, diseñar e implementar una máquina de estados finitos a partir de una carta ASM, identificando el funcionamiento de los flip-flops tipo D como elementos de memoria. Obtener las funciones de estado siguiente y salida mediante el llenado de memoria y mapas de Karnaugh, para posteriormente comprobar su funcionamiento utilizando la FPGA DE10-Lite.
 
 \section*{Introducción}
 
 \section*{Desarrollo}
 
-\subsection*{Parte 1. Análisis y diseño de la máquina de estados}
+\subsection*{Parte I. Análisis y diseño de la máquina de estados}
 
-A partir de la carta ASM proporcionada en la Figura 1:
+A partir de la carta ASM proporcionada en la Figura \ref{fig:ASM}:
 
-\begin{enumerate}
-    \item Identifique los estados, entradas y salidas de la máquina.
-    \begin{itemize}
-        \item \textcolor{red}{\textbf{Estados:} El sistema cuenta con 4 estados definidos en los rectángulos: \texttt{EST0}, \texttt{EST1}, \texttt{EST2} y \texttt{EST3}.}
-        \item \textcolor{red}{\textbf{Entradas:} Las condiciones de transición (rombos) evalúan dos variables: $X$ e $Y$.}
-        \item \textcolor{red}{\textbf{Salidas:} Dentro de los bloques de estado se activan las señales $S_1$ y $S_0$. Al estar dentro de los rectángulos, se trata de una máquina de Moore.}
-        \begin{itemize}
-            \item \textcolor{red}{En EST0: Se activa $S_1$.}
-            \item \textcolor{red}{En EST1: Se activa $S_0$.}
-            \item \textcolor{red}{En EST2: No hay salidas activas.}
-            \item \textcolor{red}{En EST3: Se activan $S_1$ y $S_0$.}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.48\textwidth]{carta_asm.png}
+    \caption{Carta ASM.}
+    \label{fig:ASM}
+\end{figure}
+
+Realizar lo siguiente:
+
+\subsubsection*{1. Identifique los estados, entradas y salidas de la máquina.}
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+    \begin{itemize}[leftmargin=15pt]
+        \item \textbf{Estados:} El sistema cuenta con 4 estados definidos en los rectángulos: \texttt{EST0}, \texttt{EST1}, \texttt{EST2} y \texttt{EST3}.
+        \item \textbf{Entradas:} Son dos entradas: $X$ e $Y$.
+        \item \textbf{Salidas:} Dentro de los bloques de estado se activan las señales $S_1$ y $S_0$.
+        \begin{itemize}[leftmargin=20pt]
+            \item En EST0: Se activa $S_1$.
+            \item En EST1: Se activa $S_0$.
+            \item En EST2: No hay salidas activas.
+            \item En EST3: Se activan $S_1$ y $S_0$.
         \end{itemize}
     \end{itemize}
-        \item Determine el número de bits necesarios para representar los estados y proponga una codificación.
-    \par\textcolor{red}{Dado que se tienen 4 estados, se calcula el número de bits $n$ necesarios usando $2^n \geq 4$, resultando en $n = 2$ bits. Se utilizarán dos variables de estado ($Q_1$ y $Q_0$) que corresponden a dos Flip-Flops tipo D. La codificación binaria propuesta es:}
-    \begin{itemize}
-        \item \textcolor{red}{\texttt{EST0} = $00$}
-        \item \textcolor{red}{\texttt{EST1} = $01$}
-        \item \textcolor{red}{\texttt{EST2} = $10$}
-        \item \textcolor{red}{\texttt{EST3} = $11$}
-    \end{itemize}
+\end{tcolorbox}
 
-    \item Obtenga la tabla de transiciones, considerando el estado actual y las entradas del sistema.
-    \par\textcolor{red}{A partir de la carta ASM, la tabla de transiciones muestra el estado siguiente ($Q_1(t+1) Q_0(t+1)$) en función del estado actual ($E_1(t) E_0(t)$) y las combinaciones de las entradas $X$ e $Y$:}
+\subsubsection*{2. Determine el número de bits necesarios para representar los estados y proponga una codificación.}
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+    Dado que se tienen 4 estados, se calcula el número de bits $n$ necesarios usando $2^n \geq 4$, resultando en $n = 2$ bits. Se utilizarán dos variables de estado ($E_1$ y $E_0$) que corresponden a dos Flip-Flops tipo D. La codificación binaria propuesta es:
+
+    \begin{itemize}[leftmargin=15pt]
+        \item \texttt{EST0} = $00$
+        \item \texttt{EST1} = $01$
+        \item \texttt{EST2} = $10$
+        \item \texttt{EST3} = $11$
+    \end{itemize}
+\end{tcolorbox}
+
+\subsubsection*{3. Obtenga la tabla de transiciones, considerando el estado actual y las entradas del sistema.}
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+    A partir de la carta ASM, la tabla de transiciones muestra el estado siguiente ($Q_1(t+1) Q_0(t+1)$) en función del estado actual ($E_1(t) E_0(t)$) y las combinaciones de las entradas $X$ e $Y$:
+
+    \begin{table}[H]
+    \renewcommand{\arraystretch}{1.2}
     \begin{center}
-        \color{red}
         \begin{tabular}{|c|c|c|c|c|}
         \hline
-        \textbf{Estado Actual} & \multicolumn{4}{c|}{\textbf{Entradas $X Y$}} \\
-        \cline{2-5}
-        $E_1(t) E_0(t)$ & $00$ & $01$ & $11$ & $10$ \\
+        \rowcolor{black!80}
+        \textcolor{white}{\textbf{Estado Actual}} & \multicolumn{4}{c|}{\textcolor{white}{\textbf{Entradas $X Y$}}} \\
+        \hline
+        \cellcolor{black!80}\textcolor{white}{\textbf{$E_1 E_0$}} & \cellcolor{NavyBlue!80!black}\textcolor{white}{\textbf{$00$}} & \cellcolor{NavyBlue!80!black}\textcolor{white}{\textbf{$01$}} & \cellcolor{NavyBlue!80!black} \textcolor{white}{\textbf{$11$}} & \cellcolor{NavyBlue!80!black} \textcolor{white}{\textbf{$10$}} \\
         \hline
         $00$ (\texttt{EST0}) & $11$ & $11$ & $01$ & $00$ \\
         $01$ (\texttt{EST1}) & $01$ & $11$ & $10$ & $01$ \\
@@ -63,127 +83,198 @@ A partir de la carta ASM proporcionada en la Figura 1:
         $11$ (\texttt{EST3}) & $00$ & $00$ & $00$ & $00$ \\
         \hline
         \end{tabular}
+        \caption{Tabla de transiciones.}
+        \label{tab:tabla_transiciones}
     \end{center}
+    \end{table}
+\end{tcolorbox}
 
-    \item Determine para cada combinación: Estado actual, Entradas, Estado siguiente, Salidas.
-    \par\textcolor{red}{Los incisos 3 y 4 se resuelven de manera conjunta en la siguiente tabla de verdad general de la máquina de estados:}
+\subsubsection*{4. Determine para cada combinación: Estado actual, Entradas, Estado siguiente, Salidas.}
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+    Los incisos 3 y 4 se resuelven de manera conjunta en la siguiente tabla de verdad general y más completa de la máquina de estados:
+
+    \begin{table}[H]
+    \renewcommand{\arraystretch}{1.2}
     \begin{center}
-        \color{red}
         \begin{tabular}{|cc|cc|cc|cc|}
         \hline
-        \multicolumn{2}{|c|}{\textbf{Estado Actual}} & \multicolumn{2}{c|}{\textbf{Entradas}} & \multicolumn{2}{c|}{\textbf{Estado Siguiente}} & \multicolumn{2}{c|}{\textbf{Salidas}} \\
-        $E_1(t)$ & $E_0(t)$ & $X$ & $Y$ & $Q_1(t+1)$ & $Q_0(t+1)$ & $S_1$ & $S_0$ \\
+        \rowcolor{black!80}
+        \multicolumn{2}{|c|}{\textcolor{white}{\textbf{Estado Actual}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{Entradas}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{Estado Siguiente}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{Salidas}}} \\
         \hline
-        0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
-        0 & 0 & 0 & 1 & 0 & 0 & 1 & 0 \\
-        0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 \\
-        0 & 0 & 1 & 1 & 0 & 1 & 1 & 0 \\
+        \rowcolor{black!80}
+        \textcolor{white}{\textbf{$E_1(t)$}} & \textcolor{white}{\textbf{$E_0(t)$}} & \textcolor{white}{\textbf{$X$}} & \textcolor{white}{\textbf{$Y$}} & \textcolor{white}{\textbf{$Q_1(t+1)$}} & \textcolor{white}{\textbf{$Q_0(t+1)$}} & \textcolor{white}{\textbf{$S_1$}} & \textcolor{white}{\textbf{$S_0$}} \\
         \hline
-        0 & 1 & 0 & 0 & 0 & 1 & 0 & 1 \\
-        0 & 1 & 0 & 1 & 0 & 1 & 0 & 1 \\
-        0 & 1 & 1 & 0 & 0 & 1 & 0 & 1 \\
-        0 & 1 & 1 & 1 & 1 & 0 & 0 & 1 \\
+        0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+        0 & 0 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+        0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+        0 & 0 & 1 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
         \hline
-        1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 \\
-        1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 \\
-        1 & 0 & 1 & 0 & 1 & 1 & 0 & 0 \\
-        1 & 0 & 1 & 1 & 1 & 1 & 0 & 0 \\
+        0 & 1 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+        0 & 1 & 0 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+        0 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+        0 & 1 & 1 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
         \hline
-        1 & 1 & 0 & 0 & 0 & 0 & 1 & 1 \\
-        1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 \\
-        1 & 1 & 1 & 0 & 0 & 0 & 1 & 1 \\
-        1 & 1 & 1 & 1 & 0 & 0 & 1 & 1 \\
+        1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+        1 & 0 & 0 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+        1 & 0 & 1 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+        1 & 0 & 1 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+        \hline
+        1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+        1 & 1 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+        1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+        1 & 1 & 1 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
         \hline
         \end{tabular}
     \end{center}
+    \caption{Tabla de transiciones y salidas de la máquina de estados.}
+    \label{tab:tabla_transiciones_estados_salidas}
+    \end{table}
+\end{tcolorbox}
 
-    \item Obtenga los mapas de Karnaugh correspondientes a cada entrada de los flip-flops tipo D y a las señales de salida.
+\subsubsection*{5. Obtenga los mapas de Karnaugh correspondientes a cada entrada de los flip-flops tipo D y a las señales de salida.}
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+    \begin{table}[H]
+    \large
     \begin{center}
-        \color{red}
-        \textbf{Mapa para $Q_1(t+1)$:}\\
         \begin{tabular}{|c|c|c|c|c|}
         \hline
-        $E_1 E_0 \backslash X Y$ & 00 & 01 & 11 & 10 \\
+        \cellcolor{MidnightBlue!70!black}\textcolor{white}{\diagbox[linecolor=black]{$E_1 E_0$}{$X Y$}} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{00} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{01} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{11} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{10} \\
         \hline
-        00 & 0 & 0 & 1 & 0 \\
-        01 & 1 & 1 & 0 & 1 \\
-        11 & 0 & 0 & 0 & 0 \\
-        10 & 1 & 1 & 1 & 1 \\
-        \hline
-        \end{tabular}
-        \vspace{0.5cm}
-
-        \textbf{Mapa para $Q_0(t+1)$:}\\
-        \begin{tabular}{|c|c|c|c|c|}
-        \hline
-        $E_1 E_0 \backslash X Y$ & 00 & 01 & 11 & 10 \\
-        \hline
-        00 & 0 & 0 & 0 & 0 \\
-        01 & 0 & 0 & 1 & 0 \\
-        11 & 0 & 0 & 0 & 0 \\
-        10 & 1 & 1 & 1 & 1 \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{00} & 0 & 0 & \tikzmarknode[inner sep=1pt]{qone-r00-c11}{1} & 0 \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{01} & \tikzmarknode[inner sep=1pt]{qone-r01-c00}{1} & \tikzmarknode[inner sep=1pt]{qone-r01-c01}{1} & 0 & \tikzmarknode[inner sep=1pt]{qone-r01-c10}{1} \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{11} & 0 & 0 & 0 & 0 \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{10} & \tikzmarknode[inner sep=1pt]{qone-r10-c00}{1} & \tikzmarknode[inner sep=1pt]{qone-r10-c01}{1} & \tikzmarknode[inner sep=1pt]{qone-r10-c11}{1} & \tikzmarknode[inner sep=1pt]{qone-r10-c10}{1} \\
         \hline
         \end{tabular}
+        \caption{Mapa de Karnaugh para $Q_1(t+1)$.}
+        \label{tab:karnaugh_Q1}
     \end{center}
+    \end{table}
+    \begin{tikzpicture}[remember picture,overlay]
+        \node[draw=red,thick,rounded corners,fit=(qone-r10-c00)(qone-r10-c10),inner xsep=5pt,inner ysep=5pt] {};
+        \node[draw=orange,thick,rounded corners,fit=(qone-r01-c00)(qone-r01-c01),inner xsep=5pt,inner ysep=5pt] {};
+        \node[draw=blue,thick,rounded corners,fit=(qone-r01-c10)(qone-r01-c10),inner xsep=4pt,inner ysep=4pt] {};
+        \node[draw=blue,thick,rounded corners,fit=(qone-r01-c00)(qone-r01-c00),inner xsep=4pt,inner ysep=4pt] {};
+        \node[draw=ForestGreen,thick,rounded corners,fit=(qone-r00-c11)(qone-r00-c11),inner xsep=4pt,inner ysep=4pt] {};
+        \node[draw=ForestGreen,thick,rounded corners,fit=(qone-r10-c11)(qone-r10-c11),inner xsep=4pt,inner ysep=4pt] {};
+    \end{tikzpicture}
 
+    \begin{table}[H]
+    \large
     \begin{center}
-        \color{red}
-        \textbf{Mapa para $S_1$:}\\
         \begin{tabular}{|c|c|c|c|c|}
         \hline
-        $E_1 E_0 \backslash X Y$ & 00 & 01 & 11 & 10 \\
+        \cellcolor{MidnightBlue!70!black}\textcolor{white}{\diagbox[linecolor=black]{$E_1 E_0$}{$X Y$}} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{00} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{01} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{11} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{10} \\
         \hline
-        00 & 1 & 1 & 1 & 1 \\
-        01 & 0 & 0 & 0 & 0 \\
-        11 & 1 & 1 & 1 & 1 \\
-        10 & 0 & 0 & 0 & 0 \\
-        \hline
-        \end{tabular}
-        \vspace{0.5cm}
-
-        \textbf{Mapa para $S_0$:}\\
-        \begin{tabular}{|c|c|c|c|c|}
-        \hline
-        $E_1 E_0 \backslash X Y$ & 00 & 01 & 11 & 10 \\
-        \hline
-        00 & 0 & 0 & 0 & 0 \\
-        01 & 1 & 1 & 1 & 1 \\
-        11 & 1 & 1 & 1 & 1 \\
-        10 & 0 & 0 & 0 & 0 \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{00} & 0 & 0 & 0 & 0 \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{01} & 0 & 0 & \tikzmarknode[inner sep=1pt]{qzero-single}{1} & 0 \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{11} & 0 & 0 & 0 & 0 \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{10} & \tikzmarknode[inner sep=1pt]{qzero-row-c1}{1} & \tikzmarknode[inner sep=1pt]{qzero-row-c2}{1} & \tikzmarknode[inner sep=1pt]{qzero-row-c3}{1} & \tikzmarknode[inner sep=1pt]{qzero-row-c4}{1} \\
         \hline
         \end{tabular}
+        \caption{Mapa de Karnaugh para $Q_0(t+1)$.}
+        \label{tab:karnaugh_Q0}
     \end{center}
+    \end{table}
+    \begin{tikzpicture}[remember picture,overlay]
+        \node[draw=red,thick,rounded corners,fit=(qzero-row-c1)(qzero-row-c4),inner xsep=5pt,inner ysep=5pt] {};
+        \node[draw=orange,thick,rounded corners,fit=(qzero-single),inner sep=5pt] {};
+    \end{tikzpicture}
 
-    \item Simplifique las funciones booleanas.
-    \par\textcolor{red}{De los mapas de Karnaugh anteriores se deducen las siguientes expresiones booleanas simplificadas (suma de productos):}
-    \color{red}
+    \begin{table}[H]
+    \large
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \cellcolor{MidnightBlue!70!black}\textcolor{white}{\diagbox[linecolor=black]{$E_1 E_0$}{$X Y$}} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{00} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{01} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{11} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{10} \\
+        \hline
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{00} & \tikzmarknode[inner sep=1pt]{sone-r00-c00}{1} & \tikzmarknode[inner sep=1pt]{sone-r00-c01}{1} & \tikzmarknode[inner sep=1pt]{sone-r00-c11}{1} & \tikzmarknode[inner sep=1pt]{sone-r00-c10}{1} \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{01} & 0 & 0 & 0 & 0 \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{11} & \tikzmarknode[inner sep=1pt]{sone-r11-c00}{1} & \tikzmarknode[inner sep=1pt]{sone-r11-c01}{1} & \tikzmarknode[inner sep=1pt]{sone-r11-c11}{1} & \tikzmarknode[inner sep=1pt]{sone-r11-c10}{1} \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{10} & 0 & 0 & 0 & 0 \\
+        \hline
+        \end{tabular}
+        \caption{Mapa de Karnaugh para $S_1$.}
+        \label{tab:karnaugh_S1}
+    \end{center}
+    \end{table}
+    \begin{tikzpicture}[remember picture,overlay]
+        \node[draw=red,thick,rounded corners,fit=(sone-r00-c00)(sone-r00-c10),inner xsep=5pt,inner ysep=5pt] {};
+        \node[draw=orange,thick,rounded corners,fit=(sone-r11-c00)(sone-r11-c10),inner xsep=5pt,inner ysep=5pt] {};
+    \end{tikzpicture}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+    \begin{table}[H]
+    \large
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \cellcolor{MidnightBlue!70!black}\textcolor{white}{\diagbox[linecolor=black]{$E_1 E_0$}{$X Y$}} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{00} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{01} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{11} & \cellcolor{MidnightBlue!90!black}\textcolor{white}{10} \\
+        \hline
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{00} & 0 & 0 & 0 & 0 \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{01} & \tikzmarknode[inner sep=1pt]{szero-r01-c00}{1} & \tikzmarknode[inner sep=1pt]{szero-r01-c01}{1} & \tikzmarknode[inner sep=1pt]{szero-r01-c11}{1} & \tikzmarknode[inner sep=1pt]{szero-r01-c10}{1} \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{11} & \tikzmarknode[inner sep=1pt]{szero-r11-c00}{1} & \tikzmarknode[inner sep=1pt]{szero-r11-c01}{1} & \tikzmarknode[inner sep=1pt]{szero-r11-c11}{1} & \tikzmarknode[inner sep=1pt]{szero-r11-c10}{1} \\
+        \cellcolor{MidnightBlue!90!black}\textcolor{white}{10} & 0 & 0 & 0 & 0 \\
+        \hline
+        \end{tabular}
+        \caption{Mapa de Karnaugh para $S_0$.}
+        \label{tab:karnaugh_S0}
+    \end{center}
+    \end{table}
+    \begin{tikzpicture}[remember picture,overlay]
+        \node[draw=red,thick,rounded corners,fit=(szero-r01-c00)(szero-r11-c10),inner xsep=5pt,inner ysep=5pt] {};
+    \end{tikzpicture}
+\end{tcolorbox}
+
+\subsubsection*{6. Simplifique las funciones booleanas.}
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+    De los mapas de Karnaugh anteriores se deducen las siguientes expresiones booleanas simplificadas (suma de productos):
+
     \begin{align*}
         Q_1(t+1) &= E_1 \overline{E_0} + \overline{E_1} E_0 \overline{X} + \overline{E_1} E_0 \overline{Y} + \overline{E_0} X Y \\
         Q_0(t+1) &= E_1 \overline{E_0} + \overline{E_1} E_0 X Y \\
         S_1 &= \overline{E_1} \overline{E_0} + E_1 E_0\\
         S_0 &= E_0\\
     \end{align*}
-    \color{black}
+\end{tcolorbox}
 
-    % \item Dibuje el circuito resultante utilizando: Flip-flop tipo D, compuertas y lógica.
-    % \par\textcolor{red}{El circuito lógico se implementa conectando las ecuaciones resultantes $D_1$ y $D_0$ a las terminales $D$ de dos flip-flops, empleando compuertas NOT, AND y OR para formar los minitérminos. La salida $S_1$ requiere una compuerta XNOR entre $Q_1$ y $Q_0$, mientras que $S_0$ se toma directamente de la salida del segundo flip-flop. (Se recomienda anexar el diagrama esquemático generado en software en este apartado).}
-\end{enumerate}
+\subsubsection*{7. Dibuje el circuito resultante utilizando: Flip-flop tipo D, compuertas y lógica.}
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{circuito_logico.png}
+        \caption{Circuito lógico en quartus.}
+        \label{fig:circuito_logico}
+    \end{figure}
+\end{tcolorbox}
+
+\newpage
+\section*{Parte II. Implementación en Quartus y FPGA DE10-Lite.}
+
+\subsection*{1. Implementación en Block Diagram/Schematic File}
+
+Se implementó el mismo circuito mostrado en la figura \ref{fig:circuito_logico} en el software Quartus, utilizando un archivo de diagrama de bloques/esquemático. Se utilizaron Flip-Flops tipo D y compuertas lógicas para representar las funciones booleanas obtenidas previamente. A continuación se muestra la compilación y programación del circuito en la FPGA DE10-Lite.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.4\textwidth]{carta_asm.png}
-    \caption{Carta ASM.}
-    \label{fig:ASM}
+    \includegraphics[width=\textwidth]{compilacion.png}
+    \caption{Compilación del circuito en Quartus.}
+    \label{fig:compilacion}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{programacion.png}
+    \caption{Programación del circuito en la FPGA DE10-Lite.}
+    \label{fig:programacion}
 \end{figure}
 
 \section*{Análisis de Resultados}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.5\textwidth]{imagen_ejemplo_1.png}
-    \caption{Ejemplo de Simulación.}
-    \label{fig:ASM}
-\end{figure}
 
 Se logra apreciar que en la simulación con las pruebas correspondientes del estado ...
 

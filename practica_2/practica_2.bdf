@@ -1109,33 +1109,8 @@ refer to the applicable agreement for further details.
 	(color 85 255 255)
 )
 (connector
-	(pt 336 368)
-	(pt 336 128)
-	(color 212 212 105)
-)
-(connector
-	(pt 304 128)
-	(pt 336 128)
-	(color 212 212 105)
-)
-(connector
-	(pt 120 368)
-	(pt 336 368)
-	(color 212 212 105)
-)
-(connector
-	(pt 336 368)
-	(pt 384 368)
-	(color 212 212 105)
-)
-(connector
 	(pt 384 184)
 	(pt 352 184)
-	(color 255 170 0)
-)
-(connector
-	(pt 352 144)
-	(pt 304 144)
 	(color 255 170 0)
 )
 (connector
@@ -1156,16 +1131,6 @@ refer to the applicable agreement for further details.
 (connector
 	(pt 120 544)
 	(pt 320 544)
-	(color 128 66 89)
-)
-(connector
-	(pt 320 544)
-	(pt 320 208)
-	(color 128 66 89)
-)
-(connector
-	(pt 304 208)
-	(pt 320 208)
 	(color 128 66 89)
 )
 (connector
@@ -1198,6 +1163,39 @@ refer to the applicable agreement for further details.
 	(pt 592 504)
 	(color 0 170 255)
 )
+(connector
+	(pt 304 144)
+	(pt 352 144)
+	(color 255 170 0)
+)
+(connector
+	(pt 304 208)
+	(pt 320 208)
+)
+(connector
+	(pt 320 208)
+	(pt 320 544)
+)
+(connector
+	(pt 344 128)
+	(pt 344 368)
+	(color 193 193 96)
+)
+(connector
+	(pt 120 368)
+	(pt 344 368)
+	(color 193 193 96)
+)
+(connector
+	(pt 344 368)
+	(pt 384 368)
+	(color 193 193 96)
+)
+(connector
+	(pt 344 128)
+	(pt 304 128)
+	(color 226 226 112)
+)
 (junction (pt -312 160))
 (junction (pt -256 160))
 (junction (pt -152 336))
@@ -1216,4 +1214,4 @@ refer to the applicable agreement for further details.
 (junction (pt 232 128))
 (junction (pt 232 160))
 (junction (pt 216 240))
-(junction (pt 336 368))
+(junction (pt 344 368))
