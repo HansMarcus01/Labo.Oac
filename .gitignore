@@ -12,3 +12,10 @@ simulation/
 *.idx
 *.xml
 *.json
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.ilg
+*.ind
