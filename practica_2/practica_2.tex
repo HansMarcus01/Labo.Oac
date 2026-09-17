@@ -18,6 +18,16 @@ Analizar, diseñar e implementar una máquina de estados finitos a partir de una
 
 \section*{Introducción}
 
+Una máquina de estados finitos (FSM) es un modelo matemático de computación que representa una máquina abstracta con un número finito de estados. La FSM puede tener transiciones o cambiar de un estado a otro en respuesta a alguna entrada, sin embargo, sólo puede estar en uno de ellos a la vez.
+
+Las FSM se definen mediante una lista de sus estados, su estado inicial y las entradas que desencadenan cada transición, además, pueden ser de tipo determinista o no determinista. 
+
+Los flip-flops son circuitos electrónicos que pueden "recordar" valores binarios, lo que los vuelve útiles como dispositivos de almacenamiento temporal de memoria.
+
+La característica principal de los flip-flops tipo D es que cuenta con sólo 2 entradas: la de datos y el reloj. Cuando recibe un pulso de reloj, el componente toma los datos de entrada y los transfiere directo a la salida.
+
+Debido a la simplicidad y confiabilidad de estos elementos, son muy utilizados con diferentes fines, entre ellos los contadores binarios e icluso para las memorias RAM.
+
 \section*{Desarrollo}
 
 \subsection*{Parte I. Análisis y diseño de la máquina de estados}
@@ -350,6 +360,7 @@ Como podemos ver en la simulación para cada combinación de entradas, el sistem
 % Conclusiones por integrante
 \subsection*{Luis Antonio Ugartechea Gonzáles}
 
+El desarrollo de esta práctica se enfocó principalmente en el análisis estructural del circuito lógico y su implementación en Quartus. La construcción del diagrama de bloques a partir de compuertas AND, OR, NOT y flip-flops tipo D facilitó la comprensión de la ruta de datos y la retroalimentación de las señales de estado $E_1$ y $E_0$. Asimismo, la simulación mediante diagramas de tiempos y la posterior programación en la FPGA permitieron validar visualmente que las salidas $S_1$ y $S_0$ responden exactamente a las combinaciones de las entradas $X$ e $Y$ según lo diseñado en la tabla de transiciones. 
 
 \subsection*{Hansel Yael Tepal Briseño - 320078282}
 
@@ -357,9 +368,9 @@ Esta práctica me permitió repasar lo visto en semestres pasados, como las máq
 
 Considero destacable el hecho de que se me permitió poner en práctica los conocimientos que había adquirido en programacion VHDL ya que de esta forma pude algunos estandares como la implementación de un boton de reset y el uso de lógica anti-rebote, los cuales son esenciales para el correcto funcionamiento de un sistema digital.
 
-\subsection*{Andrea Saldaña Navarrete - }
+\subsection*{Andrea Saldaña Navarrete - 320206384}
 
-
+La realización de esta práctica me ayudó mucho para recordar el proceso completo de diseño e implementación de los algoritmos de máquina de estados. A través de las cartas ASM y los mapas de Karnaugh, fue posible abstraer las transiciones de estado para obtener las funciones lógicas de estado siguiente y salida. Asimismo, la traducción del circuito tanto a nivel de esquema como mediante descripción en VHDL permitió comprobar el rol determinante que juegan los flip-flops tipo D como elementos de memoria dentro de la arquitectura de la FPGA DE10-Lite.
 
 \input{template/biblio.tex}
 
