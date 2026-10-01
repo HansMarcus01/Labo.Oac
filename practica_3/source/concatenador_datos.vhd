@@ -16,5 +16,6 @@ begin
 	process (entradaA, entradaB)
 	begin
 		 --Asignar la concatenacion del Edo Presente y Entradas a la Salida.
+		 salida <= entradaB & entradaA;
 	end process;
 end Behavioral;

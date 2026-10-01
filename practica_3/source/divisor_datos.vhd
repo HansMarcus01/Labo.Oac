@@ -14,7 +14,7 @@ architecture Behavioral of divisor_datos is
 begin
 	process (entrada)
 	begin
-		liga <= --Asignar los 3 bits mas significativos de la entrada;
-		salidas <= --Asignar los 4 bits menos significativos de la entrada;
+		liga <= entrada(6 downto 4);
+		salidas <= entrada(3 downto 0);
 	end process;
 end Behavioral;

@@ -15,14 +15,14 @@ begin
 	process (CLK, RESET, DATA_IN)
 	begin
 		if RESET = '0' then
-			--Asignar a internal_value el estado 0;
+			internal_value <= B"000";
 		elsif rising_edge (CLK) then
-			--Asignar a internal_value el valor de DATA_IN
+			internal_value <= DATA_IN;
 		end if;
 	end process;
 	
 	process(internal_value)
 	begin
-		--Asignar valor interno a DATA_OUT
+		DATA_OUT <= internal_value;
 	end process;
 end Behavioral;
