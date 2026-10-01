@@ -1,0 +1,295 @@
+\documentclass[12pt, letterpaper]{article}
+
+\input{template/preamble.tex}
+
+\input{template/listings_config.tex}
+
+\usetikzlibrary{fit,tikzmark}
+
+% \input{template/header.tex}
+
+\begin{document}
+
+\input{template/title_page.tex}
+
+\section*{Objetivo}
+
+Familiarizar al alumno con la construcción de máquinas de estados mediante el uso de
+memorias, aplicando el método de direccionamiento por trayectoria.
+
+\section*{Introducción}
+
+
+
+\section*{Desarrollo}
+
+\subsection*{Parte I. Direccionamiento por Trayectoria}
+
+\subsubsection*{1. Diseñe una carta ASM con las siguientes características:}
+
+\begin{itemize}
+    \item 5 estados
+    \item 3 entradas
+    \item 4 salidas
+    \begin{itemize}
+        \item 2 con lógica estándar
+        \item 2 con lógica negada
+    \end{itemize}
+    \item Dada una entrada, colocar salidas condicionales en ambos caminos.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        state/.style={draw, rounded corners=2pt, fill=blue!10, minimum width=2.8cm, minimum height=1.2cm, align=center, font=\small},
+        decision/.style={draw, diamond, aspect=2.1, fill=yellow!20, minimum width=1cm, minimum height=1cm, align=center, font=\small},
+        output/.style={draw, rounded corners=15pt, fill=gray!15, minimum width=2cm, minimum height=1cm, align=center, font=\small},
+        >={Stealth[length=2mm,width=2mm]}
+    ]
+        % Layout vertical: flujo principal de arriba hacia abajo
+        \node[state, label={[anchor=south east, font=\small]north east:{000}}] (E1) at (0,0) {};
+        \node[decision] (X1) at (0,-2) {\texttt{x}};
+        \node[output] (U01) at (-4,-2) {$\overline{U_0}$};
+        \node[output] (U11) at (4,-2) {$\overline{U_1}$};
+        \node[decision] (Y1) at (-4,-4) {\texttt{y}};
+        \node[output] (S01) at (-7,-2) {$S_0$};
+        \node[state, label={[anchor=south east, font=\small]north east:{001}}] (E2) at (7,-4) {$S_0$};
+        \node[output] (U02) at (-4,-6) {$\overline{U_0}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{011}}] (E4) at (-4,-8) {$\overline{U_1}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{010}}] (E3) at (7,-7) {$S_1$};
+        \node[decision] (Z1) at (7,-9) {\texttt{z}};
+        \node[output] (S02) at (4,-9) {$S_0$};
+        \node[output] (U12) at (7,-11) {$\overline{U_1}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{100}}] (E5) at (7,-13) {$S_0 S_1 \overline{U_0} \overline{U_1}$};
+        % Flechas principales con curva
+        \draw[->] (E1) -- (X1);
+        \draw[] (X1) -- node[above, font=\scriptsize] {1} (U01);
+        \draw[] (X1) -- node[above, font=\scriptsize] {0} (U11);
+        \draw[->] (U01) -- (Y1);
+        \draw[] (Y1) -| node[above right, font=\scriptsize] {0} (S01);
+        \draw[->] (S01) |- (E1);
+        \draw[->] (U11) -| (E2);
+        \draw[] (Y1) -- node[right, font=\scriptsize] {1} (U02);
+        \draw[->] (U02) -- (E4);
+        \draw[->] (E4.east) -- ++(1,0) |- (E2.west);
+        \draw[->] (E2) -- (E3);
+        \draw[->] (E3) -- (Z1);
+        \draw[] (Z1) -- node[above, font=\scriptsize] {0} (S02);
+        \draw[] (Z1) -- node[left, font=\scriptsize] {1} (U12);
+        \draw[->] (S02) |- (E3);
+        \draw[->] (U12) -- (E5);
+        \draw[->] (E5.east) -- ++(1,0) |- (E1.east);
+    \end{tikzpicture}
+    \caption{Carta ASM para la máquina de estados del punto 1.}
+\end{figure}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.2}
+\begin{center}
+    \begin{tabular}{|ccc|ccc|ccc|cccc|}
+    \hline
+    \rowcolor{black!80}
+    \multicolumn{3}{|c|}{\textcolor{white}{\textbf{Estado Actual}}} & \multicolumn{3}{c|}{\textcolor{white}{\textbf{Entradas}}} & \multicolumn{3}{c|}{\textcolor{white}{\textbf{Estado Siguiente}}} & \multicolumn{4}{c|}{\textcolor{white}{\textbf{Salidas}}} \\
+    \hline
+    \rowcolor{black!80}
+    \textcolor{white}{\textbf{$P_2(t)$}} & \textcolor{white}{\textbf{$P_1(t)$}} & \textcolor{white}{\textbf{$P_0(t)$}} & \textcolor{white}{\textbf{$X$}} & \textcolor{white}{\textbf{$Y$}} & \textcolor{white}{\textbf{$Z$}} & \textcolor{white}{\textbf{$L_2(t+1)$}} & \textcolor{white}{\textbf{$L_1(t+1)$}} & \textcolor{white}{\textbf{$L_0(t+1)$}} & \textcolor{white}{\textbf{$S_1$}} & \textcolor{white}{\textbf{$S_0$}} & \textcolor{white}{\textbf{$\overline{U_1}$}} & \textcolor{white}{\textbf{$\overline{U_0}$}} \\
+    \hline
+    0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1\\
+    0 & 0 & 0 & 1 & 0 & 1 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0\\
+    0 & 0 & 0 & 1 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0\\
+    0 & 0 & 0 & 1 & 1 & 1 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0\\
+    \hline
+    0 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 0 & 0 & 1 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 0 & 1 & 1 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 1 & 0 & 1 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    \hline
+    0 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 1 & 1 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    \hline
+    0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    \hline
+    \end{tabular}
+\end{center}
+\caption{Tabla de transiciones y salidas de la máquina de estados.}
+\label{tab:tabla_transiciones_estados_salidas_1}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.2}
+\begin{center}
+    \begin{tabular}{|ccc|ccc|ccc|cccc|}
+    \hline
+    \rowcolor{black!80}
+    \multicolumn{3}{|c|}{\textcolor{white}{\textbf{Estado Actual}}} & \multicolumn{3}{c|}{\textcolor{white}{\textbf{Entradas}}} & \multicolumn{3}{c|}{\textcolor{white}{\textbf{Estado Siguiente}}} & \multicolumn{4}{c|}{\textcolor{white}{\textbf{Salidas}}} \\
+    \hline
+    \rowcolor{black!80}
+    \textcolor{white}{\textbf{$P_2(t)$}} & \textcolor{white}{\textbf{$P_1(t)$}} & \textcolor{white}{\textbf{$P_0(t)$}} & \textcolor{white}{\textbf{$X$}} & \textcolor{white}{\textbf{$Y$}} & \textcolor{white}{\textbf{$Z$}} & \textcolor{white}{\textbf{$L_2(t+1)$}} & \textcolor{white}{\textbf{$L_1(t+1)$}} & \textcolor{white}{\textbf{$L_0(t+1)$}} & \textcolor{white}{\textbf{$S_1$}} & \textcolor{white}{\textbf{$S_0$}} & \textcolor{white}{\textbf{$\overline{U_1}$}} & \textcolor{white}{\textbf{$\overline{U_0}$}} \\
+    \hline
+    1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    \hline
+    1 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    \hline
+    1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    \hline
+    1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    \hline
+    \end{tabular}
+\end{center}
+\caption{Tabla de transiciones y salidas de la máquina de estados.}
+\label{tab:tabla_transiciones_estados_salidas_2}
+\end{table}
+
+
+
+\subsubsection*{2. Encuentre el tamaño de la memoria necesaria y el contenido de memoria utilizando  el direccionamiento por trayectoria.}
+
+Recuerde que antes de construir la tabla se debe asignar a cada estado de la carta ASM una representación binaria. Así mismo, recuerde que para cada estado es necesario considerar todas las posibles combinaciones de las variables de entrada, aun cuando algunas de ellas no se utilicen en determinado estado. Para esto se utiliza:
+
+\textbf{Tamaño de memoria estandar:}
+
+\[2^n \cdot (m)\]
+
+En donde:
+\begin{itemize}
+    \item $n$ = Número de bits de estado + Número de entradas
+    \item $m$ = Número de bits liga + Número de salidas
+\end{itemize}
+
+En este caso tenemos 3 bits de estado y 3 bits de entrada, por lo que $n = 6$. Además, tenemos 3 bits de liga y 4 bits de salida, por lo que $m = 7$. Por lo tanto, el tamaño de memoria necesario es:
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+\[2^6 \cdot 7 = 448 \text{ bits}\]
+\end{tcolorbox}
+
+\textbf{Tamaño de memoria óptimo:}
+
+\[\texttt{Número de estados} \cdot 2^{\texttt{Número de estados}} \cdot (log_2(\texttt{Número de estados})) + \texttt{Número de salidas}\]
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+\[5\cdot 2^3 \cdot (log_2(5)) + 4 = 96.8771238 \text{ bits}\]
+\end{tcolorbox}
+
+\subsubsection*{3. Implementación de direccionamiento por trayectoria en Quartus.}
+
+Una vez que haya obtenido el contenido de memoria, implemente el direccionamiento por trayectoria utilizando el software de desarrollo Quartus y escriba el contenido de memoria obtenido.
+
+\subsubsection*{4. Demuestre el correcto funcionamiento de su carta ASM cargando su código por equipos a su FPGA y mostrándola a la profesora en el laboratorio.}
+
+% \begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+%     Los incisos 3 y 4 se resuelven de manera conjunta en la siguiente tabla de verdad general y más completa de la máquina de estados:
+
+%     \begin{table}[H]
+%     \renewcommand{\arraystretch}{1.2}
+%     \begin{center}
+%         \begin{tabular}{|cc|cc|cc|cc|}
+%         \hline
+%         \rowcolor{black!80}
+%         \multicolumn{2}{|c|}{\textcolor{white}{\textbf{Estado Actual}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{Entradas}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{Estado Siguiente}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{Salidas}}} \\
+%         \hline
+%         \rowcolor{black!80}
+%         \textcolor{white}{\textbf{$E_1(t)$}} & \textcolor{white}{\textbf{$E_0(t)$}} & \textcolor{white}{\textbf{$X$}} & \textcolor{white}{\textbf{$Y$}} & \textcolor{white}{\textbf{$Q_1(t+1)$}} & \textcolor{white}{\textbf{$Q_0(t+1)$}} & \textcolor{white}{\textbf{$S_1$}} & \textcolor{white}{\textbf{$S_0$}} \\
+%         \hline
+%         0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+%         0 & 0 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+%         0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+%         0 & 0 & 1 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+%         \hline
+%         0 & 1 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+%         0 & 1 & 0 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+%         0 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+%         0 & 1 & 1 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+%         \hline
+%         1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+%         1 & 0 & 0 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+%         1 & 0 & 1 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+%         1 & 0 & 1 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+%         \hline
+%         1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+%         1 & 1 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+%         1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+%         1 & 1 & 1 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+%         \hline
+%         \end{tabular}
+%     \end{center}
+%     \caption{Tabla de transiciones y salidas de la máquina de estados.}
+%     \label{tab:tabla_transiciones_estados_salidas}
+%     \end{table}
+% \end{tcolorbox}
+
+\subsubsection*{5. Simule su diseño para probar su funcionamiento. Recuerden que en sus simulaciones debe aparecer el contenido de la memoria además del estado presente.}
+
+
+\section*{Análisis de Resultados}
+
+
+
+\subsection*{Discusión de Resultados}
+
+
+\section*{Conclusiones}
+
+\subsection*{Andrea Saldaña Navarrete - 320206384}
+
+
+
+\subsection*{Hansel Yael Tepal Briseño - 320078282}
+
+
+
+\subsection*{Luis Antonio Ugartechea González - 320223822}
+
+
+
+% \input{template/biblio.tex}
+
+\end{document}
