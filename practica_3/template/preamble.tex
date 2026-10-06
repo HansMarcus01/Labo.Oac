@@ -125,7 +125,15 @@
 \graphicspath{ {./img/} } % Sets the path for the graphics
 
 \newlist{biblio}{enumerate}{1}
-\setlist[biblio,1]{label=[\arabic*]}
+\setlist[biblio,1]{
+    label=[\arabic*],
+    leftmargin=2.2em,
+    labelsep=0.5em,
+    itemsep=0.35em,
+    parsep=0pt,
+    topsep=0.35em,
+    align=left
+}
 
 \makeindex
 
