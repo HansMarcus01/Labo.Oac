@@ -5,3 +5,17 @@ simulation/
 *.qpf
 *.qws
 *.vhd.bak
+*.aux
+*.log
+*.out
+*.bcf
+*.idx
+*.xml
+*.json
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.ilg
+*.ind
