@@ -23,7 +23,7 @@ refer to the applicable agreement for further details.
 	(input)
 	(rect 80 96 248 112)
 	(text "INPUT" (rect 125 0 153 10)(font "Arial" (font_size 6)))
-	(text "CLK" (rect 5 0 29 11)(font "Arial" ))
+	(text "CLK" (rect 5 0 28 11)(font "Arial" ))
 	(pt 168 8)
 	(drawing
 		(line (pt 84 12)(pt 109 12))
@@ -40,7 +40,7 @@ refer to the applicable agreement for further details.
 	(input)
 	(rect 88 216 256 232)
 	(text "INPUT" (rect 125 0 153 10)(font "Arial" (font_size 6)))
-	(text "RESET" (rect 5 0 43 11)(font "Arial" ))
+	(text "RESET" (rect 5 0 42 11)(font "Arial" ))
 	(pt 168 8)
 	(drawing
 		(line (pt 84 12)(pt 109 12))
@@ -57,7 +57,7 @@ refer to the applicable agreement for further details.
 	(input)
 	(rect 568 88 736 104)
 	(text "INPUT" (rect 125 0 153 10)(font "Arial" (font_size 6)))
-	(text "ENT[2..0]" (rect 5 0 53 11)(font "Arial" ))
+	(text "ENT[2..0]" (rect 5 0 52 11)(font "Arial" ))
 	(pt 168 8)
 	(drawing
 		(line (pt 84 12)(pt 109 12))
@@ -105,6 +105,22 @@ refer to the applicable agreement for further details.
 	)
 	(annotation_block (location)(rect 1264 392 1320 408))
 )
+(pin
+	(output)
+	(rect 880 296 1056 312)
+	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
+	(text "MEM_OUT[6..0]" (rect 90 0 170 11)(font "Arial" ))
+	(pt 0 8)
+	(drawing
+		(line (pt 0 8)(pt 52 8))
+		(line (pt 52 4)(pt 78 4))
+		(line (pt 52 12)(pt 78 12))
+		(line (pt 52 12)(pt 52 4))
+		(line (pt 78 4)(pt 82 8))
+		(line (pt 82 8)(pt 78 12))
+		(line (pt 78 12)(pt 82 8))
+	)
+)
 (symbol
 	(rect 512 176 752 288)
 	(text "register2" (rect 5 0 48 11)(font "Arial" ))
@@ -139,28 +155,6 @@ refer to the applicable agreement for further details.
 	)
 	(drawing
 		(rectangle (rect 16 16 224 96))
-	)
-)
-(symbol
-	(rect 288 72 432 152)
-	(text "div_frec" (rect 5 0 43 11)(font "Arial" ))
-	(text "inst4" (rect 8 64 32 77)(font "Intel Clear" ))
-	(port
-		(pt 0 32)
-		(input)
-		(text "reloj" (rect 0 0 21 11)(font "Arial" ))
-		(text "reloj" (rect 21 27 42 38)(font "Arial" ))
-		(line (pt 0 32)(pt 16 32))
-	)
-	(port
-		(pt 144 32)
-		(output)
-		(text "div_clk" (rect 0 0 34 11)(font "Arial" ))
-		(text "div_clk" (rect 95 27 129 38)(font "Arial" ))
-		(line (pt 144 32)(pt 128 32))
-	)
-	(drawing
-		(rectangle (rect 16 16 128 64))
 	)
 )
 (symbol
@@ -244,9 +238,27 @@ refer to the applicable agreement for further details.
 	)
 	(flipy)
 )
-(connector
-	(pt 432 104)
-	(pt 472 104)
+(symbol
+	(rect 256 360 400 440)
+	(text "div_frec" (rect 5 0 43 11)(font "Arial" ))
+	(text "inst4" (rect 8 64 32 77)(font "Intel Clear" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "reloj" (rect 0 0 21 11)(font "Arial" ))
+		(text "reloj" (rect 21 27 42 38)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32))
+	)
+	(port
+		(pt 144 32)
+		(output)
+		(text "div_clk" (rect 0 0 34 11)(font "Arial" ))
+		(text "div_clk" (rect 95 27 129 38)(font "Arial" ))
+		(line (pt 144 32)(pt 128 32))
+	)
+	(drawing
+		(rectangle (rect 16 16 128 64))
+	)
 )
 (connector
 	(pt 512 208)
@@ -255,10 +267,6 @@ refer to the applicable agreement for further details.
 (connector
 	(pt 472 208)
 	(pt 472 104)
-)
-(connector
-	(pt 288 104)
-	(pt 248 104)
 )
 (connector
 	(pt 256 224)
@@ -315,11 +323,6 @@ refer to the applicable agreement for further details.
 	(bus)
 )
 (connector
-	(pt 824 232)
-	(pt 824 368)
-	(bus)
-)
-(connector
 	(pt 848 368)
 	(pt 824 368)
 	(bus)
@@ -354,4 +357,24 @@ refer to the applicable agreement for further details.
 	(pt 1088 384)
 	(bus)
 )
+(connector
+	(pt 248 104)
+	(pt 472 104)
+)
+(connector
+	(pt 880 304)
+	(pt 824 304)
+	(bus)
+)
+(connector
+	(pt 824 232)
+	(pt 824 304)
+	(bus)
+)
+(connector
+	(pt 824 304)
+	(pt 824 368)
+	(bus)
+)
 (junction (pt 792 208))
+(junction (pt 824 304))
