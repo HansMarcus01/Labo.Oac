@@ -1,0 +1,41 @@
+flowchart TD
+    classDef estado fill:#e0f7fa,stroke:#006064,stroke-width:2px,color:#000;
+    classDef decision fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000;
+    classDef condicional fill:#e8eaf6,stroke:#283593,stroke-width:2px,color:#000;
+
+    E0["Estado E0 (000)"]:::estado
+    DecA1{"¿A = 1?"}:::decision
+    CondS1["Salida Cond.<br/>S1 = 1"]:::condicional
+    CondN1["Salida Cond.<br/>N1 = 0"]:::condicional
+
+    E0 --> DecA1
+    DecA1 -- "A=0" --> CondS1
+    DecA1 -- "A=1" --> CondN1
+
+    E1["Estado E1 (001)<br/>Salida: S2=1"]:::estado
+    DecB{"¿B = 1?"}:::decision
+
+    CondS1 --> E1
+    E1 --> DecB
+
+    E2["Estado E2 (010)<br/>Salida: N2=0"]:::estado
+    DecC{"¿C = 1?"}:::decision
+
+    CondN1 --> E2
+    E2 --> DecC
+
+    E3["Estado E3 (011)<br/>Salidas: S1=1, N1=0"]:::estado
+
+    DecB -- "B=0" --> E3
+    DecC -- "C=1" --> E3
+
+    E4["Estado E4 (100)"]:::estado
+    DecA2{"¿A = 1?"}:::decision
+
+    DecB -- "B=1" --> E4
+    E3 --> E4
+    E4 --> DecA2
+
+    DecC -- "C=0" --> E0
+    DecA2 -- "A=0" --> E1
+    DecA2 -- "A=1" --> E0

@@ -1,0 +1,894 @@
+\documentclass[12pt, letterpaper]{article}
+
+\input{template/preamble.tex}
+
+\input{template/listings_config.tex}
+
+\usetikzlibrary{fit,tikzmark}
+
+% \input{template/header.tex}
+
+\begin{document}
+
+\input{template/title_page.tex}
+
+\section*{Objetivo}
+
+Familiarizar al alumno con la construcción de máquinas de estados mediante el uso de
+memorias, aplicando el método de direccionamiento por trayectoria.
+
+\section*{Introducción}
+
+En el ámbito del diseño digital, el método de direccionamiento por trayectoria permite implementar cartas ASM almacenando el comportamiento lógico directamente en una memoria. Este tipo de direccionamiento guarda el estado siguiente y las salidas de cada estado en una localidad específica [\protect\hyperlink{1-diana-karen}{1}]. La porción de la memoria que se encarga de indicar cuál será el estado siguiente recibe el nombre de "liga", mientras que otra porción se destina a la parte de las salidas [\protect\hyperlink{1-diana-karen}{1}]. Para que el sistema determine la dirección de memoria exacta a la que debe acceder en cada pulso de reloj, se concatenan los bits de la liga del estado presente junto con las variables de entrada [\protect\hyperlink{1-diana-karen}{1}], [\protect\hyperlink{2-facultad-ingenieria}{2}].
+
+Para poder construir el contenido de la tabla de memoria, es un requisito indispensable asignar previamente a cada estado de la carta ASM una codificación o representación binaria [\protect\hyperlink{1-diana-karen}{1}]. La cantidad mínima de bits requeridos depende del número total de estados de la máquina; por ejemplo, si se cuenta con 5 estados, se requieren por lo menos 3 bits para representarlos de manera binaria (ya que $2^3 = 8$ combinaciones posibles) [\protect\hyperlink{2-facultad-ingenieria}{2}]. Asimismo, la regla fundamental al momento de estructurar el contenido de memoria establece que, para cada estado, es necesario considerar todas las posibles combinaciones de las variables de entrada, aun cuando algunas de ellas no se utilicen de manera explícita en ese estado determinado [\protect\hyperlink{1-diana-karen}{1}].
+
+Finalmente, el dimensionamiento y la organización de la memoria dependen directamente de la suma de variables. Si se diseña una carta ASM de 5 estados (3 bits de liga), 3 entradas y 4 salidas, la memoria requerirá un bus de direcciones de 6 bits (3 de liga + 3 de entrada) y palabras de 7 bits de longitud (3 de liga siguiente + 4 de salida). Esto da como resultado una organización de memoria de $2^6 \times 7$, es decir, de $64 \times 7$ bits [\protect\hyperlink{2-facultad-ingenieria}{2}].
+
+\section*{Desarrollo}
+
+\subsection*{1. Diseñe una carta ASM con las siguientes características:}
+
+\begin{itemize}
+    \item 5 estados
+    \item 3 entradas
+    \item 4 salidas
+    \begin{itemize}
+        \item 2 con lógica estándar
+        \item 2 con lógica negada
+    \end{itemize}
+    \item Dada una entrada, colocar salidas condicionales en ambos caminos.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{firmado.jpeg}
+    \caption{Carta ASM firmada.}
+    \label{fig:carta_asm}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        state/.style={draw, rounded corners=2pt, fill=blue!10, minimum width=2.8cm, minimum height=1.2cm, align=center, font=\small},
+        decision/.style={draw, diamond, aspect=2.1, fill=yellow!20, minimum width=1cm, minimum height=1cm, align=center, font=\small},
+        output/.style={draw, rounded corners=15pt, fill=gray!15, minimum width=2cm, minimum height=1cm, align=center, font=\small},
+        >={Stealth[length=2mm,width=2mm]}
+    ]
+        % Layout vertical: flujo principal de arriba hacia abajo
+        \node[state, label={[anchor=south east, font=\small]north east:{000}}] (E1) at (0,0) {};
+        \node[decision] (X1) at (0,-2) {\texttt{x}};
+        \node[output] (U01) at (-4,-2) {$\overline{U_0}$};
+        \node[output] (U11) at (4,-2) {$\overline{U_1}$};
+        \node[decision] (Y1) at (-4,-4) {\texttt{y}};
+        \node[output] (S01) at (-7,-2) {$S_0$};
+        \node[state, label={[anchor=south east, font=\small]north east:{001}}] (E2) at (7,-4) {$S_0$};
+        \node[output] (U02) at (-4,-6) {$\overline{U_0}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{011}}] (E4) at (-4,-8) {$\overline{U_1}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{010}}] (E3) at (7,-7) {$S_1$};
+        \node[decision] (Z1) at (7,-9) {\texttt{z}};
+        \node[output] (S02) at (4,-9) {$S_0$};
+        \node[output] (U12) at (7,-11) {$\overline{U_1}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{100}}] (E5) at (7,-13) {$S_0 S_1 \overline{U_0} \overline{U_1}$};
+        % Flechas principales con curva
+        \draw[->] (E1) -- (X1);
+        \draw[] (X1) -- node[above, font=\scriptsize] {1} (U01);
+        \draw[] (X1) -- node[above, font=\scriptsize] {0} (U11);
+        \draw[->] (U01) -- (Y1);
+        \draw[] (Y1) -| node[above right, font=\scriptsize] {0} (S01);
+        \draw[->] (S01) |- (E1);
+        \draw[->] (U11) -| (E2);
+        \draw[] (Y1) -- node[right, font=\scriptsize] {1} (U02);
+        \draw[->] (U02) -- (E4);
+        \draw[->] (E4.east) -- ++(1,0) |- (E2.west);
+        \draw[->] (E2) -- (E3);
+        \draw[->] (E3) -- (Z1);
+        \draw[] (Z1) -- node[above, font=\scriptsize] {0} (S02);
+        \draw[] (Z1) -- node[left, font=\scriptsize] {1} (U12);
+        \draw[->] (S02) |- (E3);
+        \draw[->] (U12) -- (E5);
+        \draw[->] (E5.east) -- ++(1,0) |- (E1.east);
+    \end{tikzpicture}
+    \caption{Carta ASM para la máquina de estados del punto 1.}
+\end{figure}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.2}
+\begin{center}
+    \begin{tabular}{|ccc|ccc|ccc|cccc|}
+    \hline
+    \rowcolor{black!80}
+    \multicolumn{3}{|c|}{\textcolor{white}{\textbf{Estado Actual}}} & \multicolumn{3}{c|}{\textcolor{white}{\textbf{Entradas}}} & \multicolumn{3}{c|}{\textcolor{white}{\textbf{Estado Siguiente}}} & \multicolumn{4}{c|}{\textcolor{white}{\textbf{Salidas}}} \\
+    \hline
+    \rowcolor{black!80}
+    \textcolor{white}{\textbf{$P_2(t)$}} & \textcolor{white}{\textbf{$P_1(t)$}} & \textcolor{white}{\textbf{$P_0(t)$}} & \textcolor{white}{\textbf{$X$}} & \textcolor{white}{\textbf{$Y$}} & \textcolor{white}{\textbf{$Z$}} & \textcolor{white}{\textbf{$L_2(t+1)$}} & \textcolor{white}{\textbf{$L_1(t+1)$}} & \textcolor{white}{\textbf{$L_0(t+1)$}} & \textcolor{white}{\textbf{$S_1$}} & \textcolor{white}{\textbf{$S_0$}} & \textcolor{white}{\textbf{$\overline{U_1}$}} & \textcolor{white}{\textbf{$\overline{U_0}$}} \\
+    \hline
+    0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1\\
+    0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0\\
+    0 & 0 & 0 & 1 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0\\
+    0 & 0 & 0 & 1 & 1 & 1 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0\\
+    \hline
+    0 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 0 & 0 & 1 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 0 & 1 & 1 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 1 & 0 & 1 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    \hline
+    0 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 1 & 1 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    \hline
+    0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+    \hline
+    \end{tabular}
+\end{center}
+\caption{Tabla de transiciones y salidas de la máquina de estados.}
+\label{tab:tabla_transiciones_estados_salidas_1}
+\end{table}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.2}
+\begin{center}
+    \begin{tabular}{|ccc|ccc|ccc|cccc|}
+    \hline
+    \rowcolor{black!80}
+    \multicolumn{3}{|c|}{\textcolor{white}{\textbf{Estado Actual}}} & \multicolumn{3}{c|}{\textcolor{white}{\textbf{Entradas}}} & \multicolumn{3}{c|}{\textcolor{white}{\textbf{Estado Siguiente}}} & \multicolumn{4}{c|}{\textcolor{white}{\textbf{Salidas}}} \\
+    \hline
+    \rowcolor{black!80}
+    \textcolor{white}{\textbf{$P_2(t)$}} & \textcolor{white}{\textbf{$P_1(t)$}} & \textcolor{white}{\textbf{$P_0(t)$}} & \textcolor{white}{\textbf{$X$}} & \textcolor{white}{\textbf{$Y$}} & \textcolor{white}{\textbf{$Z$}} & \textcolor{white}{\textbf{$L_2(t+1)$}} & \textcolor{white}{\textbf{$L_1(t+1)$}} & \textcolor{white}{\textbf{$L_0(t+1)$}} & \textcolor{white}{\textbf{$S_1$}} & \textcolor{white}{\textbf{$S_0$}} & \textcolor{white}{\textbf{$\overline{U_1}$}} & \textcolor{white}{\textbf{$\overline{U_0}$}} \\
+    \hline
+    1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    \hline
+    1 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    \hline
+    1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    \hline
+    1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    1 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+    \hline
+    \end{tabular}
+\end{center}
+\caption{Tabla de transiciones y salidas de la máquina de estados.}
+\label{tab:tabla_transiciones_estados_salidas_2}
+\end{table}
+
+\subsection*{2. Encuentre el tamaño de la memoria necesaria y el contenido de memoria utilizando  el direccionamiento por trayectoria.}
+
+Recuerde que antes de construir la tabla se debe asignar a cada estado de la carta ASM una representación binaria. Así mismo, recuerde que para cada estado es necesario considerar todas las posibles combinaciones de las variables de entrada, aun cuando algunas de ellas no se utilicen en determinado estado. Para esto se utiliza:
+
+\textbf{Tamaño de memoria estandar:}
+
+\[2^n \cdot (m)\]
+
+En donde:
+\begin{itemize}
+    \item $n$ = Número de bits de estado + Número de entradas
+    \item $m$ = Número de bits liga + Número de salidas
+\end{itemize}
+
+En este caso tenemos 3 bits de estado y 3 bits de entrada, por lo que $n = 6$. Además, tenemos 3 bits de liga y 4 bits de salida, por lo que $m = 7$. Por lo tanto, el tamaño de memoria necesario es:
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+\[2^6 \cdot 7 = 448 \text{ bits}\]
+\end{tcolorbox}
+
+\textbf{Tamaño de memoria óptimo:}
+
+\[\texttt{Número de estados} \cdot 2^{\texttt{Número de estados}} \cdot (log_2(\texttt{Número de estados})) + \texttt{Número de salidas}\]
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+\[5\cdot 2^3 \cdot (log_2(5)) + 4 = 96.8771238 \text{ bits}\]
+\end{tcolorbox}
+
+\subsection*{3. Implementación de direccionamiento por trayectoria en Quartus.}
+
+La implementación se realizó en Quartus Prime 18.1 Lite, seleccionando la familia MAX 10 y el dispositivo 10M50DCF484C7G. El archivo \texttt{practica\_3.bdf} se utilizó como entidad de nivel superior; en él se conectaron los bloques que forman la ruta de datos de la máquina: el divisor de frecuencia, el registro de estado, el concatenador de dirección, la memoria y el divisor de datos.
+
+El funcionamiento es síncrono. El divisor de frecuencia genera el reloj lento a partir de la señal de la FPGA y el registro conserva el estado presente. Este estado se concatena con las tres entradas externas para formar una dirección de seis bits. La memoria entrega una palabra de siete bits, formada por tres bits de liga y cuatro bits de salida. Finalmente, el divisor de datos separa ambos campos: la liga se conecta a la entrada del registro y las salidas se conectan a los LED de la tarjeta.
+
+La dirección de memoria se construye mediante concatenación directa. La expresión \texttt{entradaB \& entradaA} coloca primero el estado presente y después las entradas, por lo que cada combinación de estado y entradas selecciona una localidad distinta de la ROM. A continuación se incluye el código completo de los módulos VHDL utilizados en el proyecto.
+
+El divisor de frecuencia reduce la frecuencia del reloj de la FPGA para que los cambios de estado puedan observarse en los LED de la tarjeta.
+
+\begin{lstlisting}[style=vhdl, caption={Código completo del divisor de frecuencia.}, label={lst:div_frec}]
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity div_frec is
+    Port ( reloj : in std_logic;
+           div_clk : out std_logic);
+end div_frec;
+
+architecture Behavioral of div_frec is
+begin
+    process (reloj)
+    variable cuenta : std_logic_vector (27 downto 0) := X"0000000";
+    begin
+        if rising_edge (reloj) then
+            if cuenta = X"2FAF080" then
+                cuenta := X"0000000";
+            else
+                cuenta := cuenta+1;
+            end if;
+        end if;
+        div_clk <= cuenta(25);
+    end process;
+end Behavioral;
+\end{lstlisting}
+
+El registro de estado carga la liga en el flanco ascendente del reloj dividido. El reinicio es activo en bajo y fuerza el estado inicial a `000`.
+
+\begin{lstlisting}[style=vhdl, caption={Código completo del registro de estado.}, label={lst:register2}]
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity register2 is
+    Port ( CLK : in STD_LOGIC;
+           RESET : in STD_LOGIC;
+           DATA_IN : in STD_LOGIC_VECTOR(2 downto 0);
+           DATA_OUT : out STD_LOGIC_VECTOR(2 downto 0)
+           );
+end register2;
+
+architecture Behavioral of register2 is
+    signal internal_value : std_logic_vector(2 downto 0) := B"000";
+begin
+    process (CLK, RESET, DATA_IN)
+    begin
+        if RESET = '0' then
+            internal_value <= B"000";
+        elsif rising_edge (CLK) then
+            internal_value <= DATA_IN;
+        end if;
+    end process;
+
+    process(internal_value)
+    begin
+        DATA_OUT <= internal_value;
+    end process;
+end Behavioral;
+\end{lstlisting}
+
+\begin{lstlisting}[style=vhdl, caption={Código completo del concatenador de datos.}, label={lst:concatenador_datos}]
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity concatenador_datos is
+    Port ( entradaA : in STD_LOGIC_VECTOR(2 downto 0);
+           entradaB : in STD_LOGIC_VECTOR(2 downto 0);
+           salida : out STD_LOGIC_VECTOR(5 downto 0)
+           );
+end concatenador_datos;
+
+architecture Behavioral of concatenador_datos is
+    signal internal_value : std_logic_vector(2 downto 0) := B"000";
+begin
+    process (entradaA, entradaB)
+    begin
+        salida <= entradaB & entradaA;
+    end process;
+end Behavioral;
+\end{lstlisting}
+
+El contenido de la carta ASM se almacenó en una ROM de 64 localidades de siete bits. Cada entrada de la tabla se escribe como la concatenación de la liga del estado siguiente con las cuatro salidas. Por ejemplo, las primeras ocho localidades corresponden al estado presente `000` y contemplan las ocho combinaciones posibles de las tres entradas.
+
+\begin{lstlisting}[style=vhdl, caption={Código completo de la memoria ROM.}, label={lst:memory_rom}]
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity memory is
+    Port ( dir : in STD_LOGIC_VECTOR(5 downto 0);
+           data : out STD_LOGIC_VECTOR(6 downto 0)
+           );
+end memory;
+
+architecture Behavioral of memory is
+type rom_type is array (0 to 63) of std_logic_vector(6 downto 0);
+signal internal_mem : rom_type := (
+    0 => "001" & "0011", -- P: 000, XYZ: 000
+    1 => "001" & "0011", -- P: 000, XYZ: 001
+    2 => "001" & "0011", -- P: 000, XYZ: 010
+    3 => "001" & "0011", -- P: 000, XYZ: 011
+    4 => "000" & "0011", -- P: 000, XYZ: 100
+    5 => "000" & "0010", -- P: 000, XYZ: 101
+    6 => "011" & "0010", -- P: 000, XYZ: 110
+    7 => "011" & "0010", -- P: 000, XYZ: 111
+
+    8 => "010" & "0111", -- P: 001, XYZ: 000
+    9 => "010" & "0111", -- P: 001, XYZ: 001
+    10 => "010" & "0111", -- P: 001, XYZ: 010
+    11 => "010" & "0111", -- P: 001, XYZ: 011
+    12 => "010" & "0111", -- P: 001, XYZ: 100
+    13 => "010" & "0111", -- P: 001, XYZ: 101
+    14 => "010" & "0111", -- P: 001, XYZ: 110
+    15 => "010" & "0111", -- P: 001, XYZ: 111
+
+    16 => "010" & "1111", -- P: 010, XYZ: 000
+    17 => "100" & "1001", -- P: 010, XYZ: 001
+    18 => "010" & "1111", -- P: 010, XYZ: 010
+    19 => "100" & "1001", -- P: 010, XYZ: 011
+    20 => "010" & "1111", -- P: 010, XYZ: 100
+    21 => "100" & "1001", -- P: 010, XYZ: 101
+    22 => "010" & "1111", -- P: 010, XYZ: 110
+    23 => "100" & "1001", -- P: 010, XYZ: 111
+
+    24 => "001" & "0001", -- P: 011, XYZ: 000
+    25 => "001" & "0001", -- P: 011, XYZ: 001
+    26 => "001" & "0001", -- P: 011, XYZ: 010
+    27 => "001" & "0001", -- P: 011, XYZ: 011
+    28 => "001" & "0001", -- P: 011, XYZ: 100
+    29 => "001" & "0001", -- P: 011, XYZ: 101
+    30 => "001" & "0001", -- P: 011, XYZ: 110
+    31 => "001" & "0001", -- P: 011, XYZ: 111
+
+    32 => "000" & "1100", -- P: 100, XYZ: 000
+    33 => "000" & "1100", -- P: 100, XYZ: 001
+    34 => "000" & "1100", -- P: 100, XYZ: 010
+    35 => "000" & "1100", -- P: 100, XYZ: 011
+    36 => "000" & "1100", -- P: 100, XYZ: 100
+    37 => "000" & "1100", -- P: 100, XYZ: 101
+    38 => "000" & "1100", -- P: 100, XYZ: 110
+    39 => "000" & "1100", -- P: 100, XYZ: 111
+
+    others => "000" & "0000"
+);
+begin
+    process(dir)
+    begin
+        data <= internal_mem(conv_integer(unsigned(dir)));
+    end process;
+end Behavioral;
+\end{lstlisting}
+
+La palabra obtenida de la memoria se divide en dos campos. Los tres bits más significativos representan la liga, es decir, el estado que será cargado en el siguiente flanco de reloj; los cuatro bits menos significativos representan las salidas actuales.
+
+\begin{lstlisting}[style=vhdl, caption={Código completo del divisor de datos.}, label={lst:divisor_datos}]
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity divisor_datos is
+    Port ( entrada : in STD_LOGIC_VECTOR(6 downto 0);
+           liga : out STD_LOGIC_VECTOR(2 downto 0);
+           salidas : out STD_LOGIC_VECTOR(3 downto 0)
+           );
+end divisor_datos;
+
+architecture Behavioral of divisor_datos is
+begin
+process (entrada)
+begin
+    liga <= entrada(6 downto 4);
+    salidas <= entrada(3 downto 0);
+end process;
+end Behavioral;
+\end{lstlisting}
+
+Después de agregar los archivos VHDL y el archivo de diagrama al proyecto, se asignaron los pines de reloj, reinicio, entradas y salidas en el archivo de configuración de Quartus.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{bdf_quartus.png}
+    \caption{Diagrama esquemático de la máquina de estados en Quartus.}
+    \label{fig:bdf_quartus}
+\end{figure}
+
+\section*{Análisis de Resultados}
+
+\subsection*{4. Demuestre el correcto funcionamiento de su carta ASM cargando su código por equipos a su FPGA}
+
+A continuación se muestran las imágenes de una de las varias secuencias de nuestra carta ASM con el fin de demostrar el correcto desempeño. Esta secuencia se deriva de seguir el camino completo de la carta ASM en donde las entradas desde un inicio son \(\texttt{X=1, Y=1, Z=1}\). Esto significaría que el sistema seguiría la secuencia de estados y salidas que se muestran a continuación:
+
+\begin{enumerate}
+    \item[\textcolor{red}{sec-1}] Estado: \texttt{000} -> Salida: \texttt{0010} -> Estado siguiente: \texttt{011}
+    \item[\textcolor{red}{sec-2}] Estado: \texttt{011} -> Salida: \texttt{0001} -> Estado siguiente: \texttt{001}
+    \item[\textcolor{red}{sec-3}] Estado: \texttt{001} -> Salida: \texttt{0111} -> Estado siguiente: \texttt{010}
+    \item[\textcolor{red}{sec-4}] Estado: \texttt{010} -> Salida: \texttt{1001} -> Estado siguiente: \texttt{100}
+    \item[\textcolor{red}{sec-5}] Estado: \texttt{100} -> Salida: \texttt{1100} -> Estado siguiente: \texttt{000}
+\end{enumerate}
+
+En la tarjeta de desarrollo se puede observar la misma secuencia del listado anterior. Las imágenes se presentan en el orden en que fueron tomadas, de acuerdo con la evolución de los estados de la máquina:
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[b]{0.47\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+                {\includegraphics[width=\textwidth]{s4_01.png}};
+
+            % Rectangulo Estado Actual
+            \draw[red, thick]
+                (3.80,1.85) rectangle (4.90,1.25);
+            % Rectangulo Salida
+            \draw[red, thick]
+                (5.80,1.85) rectangle (7.30,1.25);
+            % Texto Estado Actual
+            \node[
+                fill=white,
+                fill opacity=0.65,
+                draw=red,
+                text=red,
+                font=\tiny,
+                align=center
+            ] at (2.80,1.5) {Estado Actual};
+            % Texto Salida
+            \node[
+                fill=white,
+                fill opacity=0.65,
+                draw=red,
+                text=red,
+                font=\tiny,
+                align=center
+            ] at (7.90,1.5) {Salida};
+        \end{tikzpicture}
+        \small Estado actual \texttt{000}, salida \texttt{0010} y siguiente estado \texttt{011}.
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.47\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+                {\includegraphics[width=\textwidth]{s4_02.png}};
+
+            % Rectangulo Estado Actual
+            \draw[red, thick]
+                (3.80,1.85) rectangle (4.90,1.25);
+            % Rectangulo Salida
+            \draw[red, thick]
+                (5.80,1.85) rectangle (7.30,1.25);
+            % Texto Estado Actual
+            \node[
+                fill=white,
+                fill opacity=0.65,
+                draw=red,
+                text=red,
+                font=\tiny,
+                align=center
+            ] at (2.80,1.5) {Estado Actual};
+            % Texto Salida
+            \node[
+                fill=white,
+                fill opacity=0.65,
+                draw=red,
+                text=red,
+                font=\tiny,
+                align=center
+            ] at (7.90,1.5) {Salida};
+        \end{tikzpicture}
+        \small Estado actual \texttt{011}, salida \texttt{0001} y siguiente estado \texttt{001}.
+    \end{minipage}
+
+    \vspace{0.5cm}
+
+    \begin{minipage}[b]{0.47\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+                {\includegraphics[width=\textwidth]{s4_03.png}};
+
+            % Rectangulo Estado Actual
+            \draw[red, thick]
+                (3.80,1.85) rectangle (4.90,1.25);
+            % Rectangulo Salida
+            \draw[red, thick]
+                (5.80,1.85) rectangle (7.30,1.25);
+            % Texto Estado Actual
+            \node[
+                fill=white,
+                fill opacity=0.65,
+                draw=red,
+                text=red,
+                font=\tiny,
+                align=center
+            ] at (2.80,1.5) {Estado Actual};
+            % Texto Salida
+            \node[
+                fill=white,
+                fill opacity=0.65,
+                draw=red,
+                text=red,
+                font=\tiny,
+                align=center
+            ] at (7.90,1.5) {Salida};
+        \end{tikzpicture}
+        \small Estado actual \texttt{001}, salida \texttt{0111} y siguiente estado \texttt{010}.
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.47\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+                {\includegraphics[width=\textwidth]{s4_04.png}};
+
+            % Rectangulo Estado Actual
+            \draw[red, thick]
+                (3.80,1.85) rectangle (4.90,1.25);
+            % Rectangulo Salida
+            \draw[red, thick]
+                (5.80,1.85) rectangle (7.30,1.25);
+            % Texto Estado Actual
+            \node[
+                fill=white,
+                fill opacity=0.65,
+                draw=red,
+                text=red,
+                font=\tiny,
+                align=center
+            ] at (2.80,1.5) {Estado Actual};
+            % Texto Salida
+            \node[
+                fill=white,
+                fill opacity=0.65,
+                draw=red,
+                text=red,
+                font=\tiny,
+                align=center
+            ] at (7.90,1.5) {Salida};
+        \end{tikzpicture}
+        \small Estado actual \texttt{010}, salida \texttt{1001} y siguiente estado \texttt{100}.
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[b]{0.5\textwidth}
+        \begin{tikzpicture}
+            \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+                {\includegraphics[width=\textwidth]{s4_05.png}};
+
+            % Rectangulo Estado Actual
+            \draw[red, thick]
+                (4.05,1.85) rectangle (5.15,1.25);
+            % Rectangulo Salida
+            \draw[red, thick]
+                (6.05,1.85) rectangle (7.55,1.25);
+            % Texto Estado Actual
+            \node[
+                fill=white,
+                fill opacity=0.65,
+                draw=red,
+                text=red,
+                font=\tiny,
+                align=center
+            ] at (3.05,1.5) {Estado Actual};
+            % Texto Salida
+            \node[
+                fill=white,
+                fill opacity=0.65,
+                draw=red,
+                text=red,
+                font=\tiny,
+                align=center
+            ] at (8.15,1.5) {Salida};
+        \end{tikzpicture}
+    \small Estado actual \texttt{100}, salida \texttt{1100} y retorno al estado \texttt{000}.
+    \caption{Secuencia de estados y salidas de la máquina de estados en la tarjeta de desarrollo.}
+    \label{fig:secuencia_estados_salidas}
+    \end{minipage}
+\end{figure}
+
+\newpage
+
+\section*{Discusión de Resultados}
+
+\subsection*{5. Simule su diseño para probar su funcionamiento. Incluir el contenido de la memoria además del estado presente.}
+
+\subsubsection*{Simulación 1}
+
+Esta primera simulación se realizó con las entradas \(\texttt{X=1, Y=1, Z=1}\) desde un inicio, ya que de esta forma podemos hacer una secuencia que abarque todos los estados, mostrando la siguiente secuencia de estados y salidas:
+
+\begin{enumerate}
+    \item[\textcolor{red}{sec-1:}] Estado: \texttt{000} \(\rightarrow\) Salida: \texttt{0010} \(\rightarrow\) Estado siguiente: \texttt{011} \(\rightarrow\) Memoria: \texttt{0110010}
+    \item[\textcolor{red}{sec-2:}] Estado: \texttt{011} \(\rightarrow\) Salida: \texttt{0001} \(\rightarrow\) Estado siguiente: \texttt{001} \(\rightarrow\) Memoria: \texttt{0010001}
+    \item[\textcolor{red}{sec-3:}] Estado: \texttt{001} \(\rightarrow\) Salida: \texttt{0111} \(\rightarrow\) Estado siguiente: \texttt{010} \(\rightarrow\) Memoria: \texttt{0100111}
+    \item[\textcolor{red}{sec-4:}] Estado: \texttt{010} \(\rightarrow\) Salida: \texttt{1001} \(\rightarrow\) Estado siguiente: \texttt{100} \(\rightarrow\) Memoria: \texttt{1001001}
+    \item[\textcolor{red}{sec-5:}] Estado: \texttt{100} \(\rightarrow\) Salida: \texttt{1100} \(\rightarrow\) Estado siguiente: \texttt{000} \(\rightarrow\) Memoria: \texttt{0001100}
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+            {\includegraphics[width=\textwidth]{simulation_04.png}};
+
+        \draw[red, thick]
+            (1.75,1) rectangle (2.35,0.05);
+        \draw[red, thick]
+            (2.35,1) rectangle (3.55,0.05);
+        \draw[red, thick]
+            (3.55,1) rectangle (4.7,0.05);
+        \draw[red, thick]
+            (4.7,1) rectangle (5.9,0.05);
+        \draw[red, thick]
+            (5.9,1) rectangle (7.05,0.05);
+        \draw[red, thick]
+            (7.05,1) rectangle (8.25,0.05);
+        \draw[red, thick]
+            (8.25,1) rectangle (9.4,0.05);
+        \draw[red, thick]
+            (9.4,1) rectangle (10.6,0.05);
+        \draw[red, thick]
+            (10.6,1) rectangle (11.80,0.05);
+        \draw[red, thick]
+            (11.80,1) rectangle (13,0.05);
+        \node[
+            text=red,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (2.05,-0.1) {sec-1};
+        \node[
+            text=red,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (2.95,-0.1) {sec-2};
+        \node[
+            text=red,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (4.15,-0.1) {sec-3};
+        \node[
+            text=red,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (5.35,-0.1) {sec-4};
+        \node[
+            text=red,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (6.5,-0.1) {sec-5};
+        \node[
+            text=red,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (7.7,-0.1) {sec-1};
+        \node[
+            text=red,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (8.9,-0.1) {sec-2};
+        \node[
+            text=red,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (10.1,-0.1) {sec-3};
+        \node[
+            text=red,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (11.35,-0.1) {sec-4};
+        \node[
+            text=red,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (12.5,-0.1) {sec-5};
+    \end{tikzpicture}
+    \caption{Simulación 1 de la máquina de estados en ModelSim.}
+    \label{fig:simulacion_sec_4}
+\end{figure}
+
+Como se puede observar el comportamiento es el esperado, ya que la secuencia de estados y salidas es la misma que se obtuvo en la FPGA de manera física como se mostró en la Figure \ref{fig:secuencia_estados_salidas}.
+
+\subsubsection*{Simulación 2}
+
+En esta simulación utilizamos el segundo camino más largo de acuerdo con la carta ASM, en donde las entradas desde un inicio son \(\texttt{X=0, Y=0, Z=1}\). Esto significaría que el sistema seguiría la secuencia de estados y salidas que se muestran a continuación:
+
+\begin{enumerate}
+    \item[\textcolor{NavyBlue}{sec-1:}] Estado: \texttt{000} \(\rightarrow\) Salida: \texttt{0011} \(\rightarrow\) Estado siguiente: \texttt{011} \(\rightarrow\) Memoria: \texttt{0010011}
+    \item[\textcolor{NavyBlue}{sec-2:}] Estado: \texttt{001} \(\rightarrow\) Salida: \texttt{0111} \(\rightarrow\) Estado siguiente: \texttt{010} \(\rightarrow\) Memoria: \texttt{0100111}
+    \item[\textcolor{NavyBlue}{sec-3:}] Estado: \texttt{010} \(\rightarrow\) Salida: \texttt{1001} \(\rightarrow\) Estado siguiente: \texttt{100} \(\rightarrow\) Memoria: \texttt{1001001}
+    \item[\textcolor{NavyBlue}{sec-4:}] Estado: \texttt{100} \(\rightarrow\) Salida: \texttt{1100} \(\rightarrow\) Estado siguiente: \texttt{000} \(\rightarrow\) Memoria: \texttt{0001100}
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+            {\includegraphics[width=\textwidth]{simulation_01.png}};
+
+        \draw[NavyBlue, thick]
+            (1.75,1) rectangle (2.35,0.05);
+        \draw[NavyBlue, thick]
+            (2.35,1) rectangle (3.55,0.05);
+        \draw[NavyBlue, thick]
+            (3.55,1) rectangle (4.7,0.05);
+        \draw[NavyBlue, thick]
+            (4.7,1) rectangle (5.9,0.05);
+        \draw[NavyBlue, thick]
+            (5.9,1) rectangle (7.05,0.05);
+        \draw[NavyBlue, thick]
+            (7.05,1) rectangle (8.25,0.05);
+        \draw[NavyBlue, thick]
+            (8.25,1) rectangle (9.4,0.05);
+        \draw[NavyBlue, thick]
+            (9.4,1) rectangle (10.6,0.05);
+        \node[
+            text=NavyBlue,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (2.05,-0.1) {sec-1};
+        \node[
+            text=NavyBlue,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (2.95,-0.1) {sec-2};
+        \node[
+            text=NavyBlue,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (4.15,-0.1) {sec-3};
+        \node[
+            text=NavyBlue,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (5.35,-0.1) {sec-4};
+        \node[
+            text=NavyBlue,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (6.5,-0.1) {sec-1};
+        \node[
+            text=NavyBlue,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (7.7,-0.1) {sec-2};
+        \node[
+            text=NavyBlue,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (8.9,-0.1) {sec-3};
+        \node[
+            text=NavyBlue,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (10.1,-0.1) {sec-4};
+    \end{tikzpicture}
+    \caption{Simulación 2 de la máquina de estados en ModelSim.}
+    \label{fig:simulacion_sec_1}
+\end{figure}
+
+De igual forma la secuencia se comporta como se espera por lo que este camino funciona correctamente y en clase se demostró esta misma secuencia en la tarjeta de desarrollo.
+
+\subsubsection*{Simulación 3}
+
+En esta simulación utilizamos el tercer camino más largo de acuerdo con la carta ASM, en donde las entradas desde un inicio son \(\texttt{X=0, Y=0, Z=0}\). Esto significaría que el sistema seguiría la secuencia de estados y salidas que se muestran a continuación:
+
+\begin{enumerate}
+    \item[\textcolor{ForestGreen}{sec-1:}] Estado: \texttt{000} \(\rightarrow\) Salida: \texttt{0011} \(\rightarrow\) Estado siguiente: \texttt{011} \(\rightarrow\) Memoria: \texttt{0010011}
+    \item[\textcolor{ForestGreen}{sec-2:}] Estado: \texttt{001} \(\rightarrow\) Salida: \texttt{0111} \(\rightarrow\) Estado siguiente: \texttt{010} \(\rightarrow\) Memoria: \texttt{0100111}
+    \item[\textcolor{ForestGreen}{sec-3:}] Estado: \texttt{010} \(\rightarrow\) Salida: \texttt{1111} \(\rightarrow\) Estado siguiente: \texttt{010} \(\rightarrow\) Memoria: \texttt{0101111}
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+            {\includegraphics[width=\textwidth]{simulation_02.png}};
+
+        \draw[ForestGreen, thick]
+            (1.75,1) rectangle (2.35,0.05);
+        \draw[ForestGreen, thick]
+            (2.35,1) rectangle (3.5,0.05);
+        \draw[ForestGreen, thick]
+            (3.5,1) rectangle (16.5,0.05);
+        \node[
+            text=ForestGreen,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (2.05,-0.1) {sec-1};
+        \node[
+            text=ForestGreen,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (2.95,-0.1) {sec-2};
+        \node[
+            text=ForestGreen,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (10.15,-0.1) {sec-3};
+    \end{tikzpicture}
+    \caption{Simulación 3 de la máquina de estados en ModelSim.}
+    \label{fig:simulacion_sec_2}
+\end{figure}
+
+Esta secuencia es relativamente corta debido a que el sistema se queda atrapado en el estado 010, por lo que la salida se mantiene en 1111 y el estado siguiente también es 010. Esto se puede observar en la Figura \ref{fig:simulacion_sec_2}.
+
+\subsubsection*{Simulación 4}
+
+Esta es la última simulación que se realizó, en donde las entradas desde un inicio son \(\texttt{X=1, Y=0, Z=0}\). Esto significaría que el sistema seguiría la secuencia de estados y salidas que se muestran a continuación:
+
+\begin{enumerate}
+    \item[\textcolor{Purple}{sec-1:}] Estado: \texttt{000} \(\rightarrow\) Salida: \texttt{0011} \(\rightarrow\) Estado siguiente: \texttt{000} \(\rightarrow\) Memoria: \texttt{0000011}
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+            {\includegraphics[width=\textwidth]{simulation_03.png}};
+        \draw[Purple, thick]
+            (1.75,1) rectangle (16.5,0.05);
+        \node[
+            text=Purple,
+            font=\fontsize{5}{0}\selectfont,
+            align=center
+        ] at (9.15,-0.1) {sec-1};
+    \end{tikzpicture}
+    \caption{Simulación 4 de la máquina de estados en ModelSim.}
+    \label{fig:simulacion_sec_3}
+\end{figure}
+
+De acuerdo con la carta ASM, si se activa únicamente la entrada \(\texttt{X}\), el sistema se queda atrapado en el estado \texttt{000}, por lo que la salida se mantiene en \texttt{0011} y el estado siguiente también es \texttt{000}. Esto se puede observar en la Figura \ref{fig:simulacion_sec_3}.
+
+\textbf{Nota}: En las simulaciones Waveform, no se observan transiciones secuenciales o pasos intermedios entre la activación de un estado y la evaluación de sus salidas condicionales. Esto se debe a la naturaleza del direccionamiento por trayectoria implementado mediante memoria ROM. En esta arquitectura, la lógica combinacional de la carta ASM ya ha sido precalculada; entonces, al concatenar el estado presente y las entradas del sistema, se accede a una única dirección de memoria. El contenido de dicha dirección entrega de forma instantánea una palabra consolidada de \texttt{7 bits}, donde los \texttt{4 bits} menos significativos unifican simultáneamente las salidas propias del estado y las salidas condicionales activadas para esa trayectoria. En consecuencia, el bus de salidas (\texttt{SAL}) refleja este vector definitivo de manera estable durante todo el ciclo de reloj, copiando exactamente la porción de salidas dictada por la memoria sin mostrar latencias lógicas intermedias.
+
+\section*{Conclusiones}
+
+\subsection*{Andrea Saldaña Navarrete - 320206384}
+
+La práctica demostró la gran utilidad del direccionamiento por trayectoria como alternativa robusta al diseño de máquinas de estado con lógica combinacional tradicional. Al mapear cada combinación posible de estado presente y entradas de la carta ASM como una dirección física, el control del circuito se abstrae a la correcta estructuración de un arreglo ROM. Este enfoque no solo simplifica el código VHDL, sino que crea un diseño altamente escalable; cualquier futura modificación o adición de estados a la carta ASM requeriría únicamente actualizar el bloque de datos de la memoria, sin necesidad de rediseñar o recablear la arquitectura subyacente del registro o los divisores de datos.
+
+\subsection*{Hansel Yael Tepal Briseño - 320078282}
+
+El contraste entre la verificación teórica en ModelSim y la implementación física en la FPGA MAX 10 fue fundamental para validar la arquitectura. La estructura modular empleada en el esquemático de Quartus permitió rastrear el flujo completo de información, desde que el concatenador une el estado y las entradas, hasta que el divisor de datos separa la palabra de memoria de 7 bits para alimentar el siguiente estado y encender los LEDs. Corroborar que las rutas evaluadas en el simulador, como los ciclos continuos y los bucles infinitos en un mismo estado, se comportaran de manera idéntica en el hardware físico nos dio la certeza de que el dimensionamiento y la sincronización con el reloj lento fueron correctos.
+
+\subsection*{Luis Antonio Ugartechea González - 320223822}
+
+El análisis más revelador del proyecto fue comprender la naturaleza estática de las salidas condicionales al implementarse mediante memorias ROM. Aunque una carta ASM sugiere un flujo direccional que pasa por rombos de decisión antes de activar una salida condicional, la simulación demostró que esta lógica se unifica y precalcula por completo en la tabla de transiciones. Al ocurrir el flanco de reloj, el sistema lee una palabra consolidada que entrega simultáneamente el siguiente estado y todas las salidas activas correspondientes a esa ruta. Esto comprueba que el direccionamiento por memoria elimina tiempos de propagación intermedios y latencias inestables, entregando respuestas inmediatas y estables durante todo el ciclo.
+
+\input{template/biblio.tex}
+
+\end{document}
