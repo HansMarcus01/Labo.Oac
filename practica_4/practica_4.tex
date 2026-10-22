@@ -1,0 +1,866 @@
+\documentclass[12pt, letterpaper]{article}
+
+\input{template/preamble.tex}
+
+\input{template/listings_config.tex}
+
+\usetikzlibrary{fit,tikzmark}
+
+\begin{document}
+
+\input{template/title_page.tex}
+
+\section*{Objetivo}
+
+Familiarizar al alumno en el conocimiento de construcción de máquinas de estados usando direccionamiento de memorias con el método de direccionamiento entrada-estado.
+
+\section*{Introducción}
+
+La síntesis de controladores digitales avanzados a menudo requiere optimizar el uso de recursos de memoria y hardware en dispositivos lógicos programables. Una de las técnicas más eficientes para este fin es el paradigma de direccionamiento estado-entrada modificado, el cual reestructura la forma en que un autómata finito interpreta sus trayectorias de transición y sus líneas de control. 
+
+A diferencia de los esquemas convencionales, esta metodología emplea exclusivamente los bits del estado actual como vector de direccionamiento directo hacia una memoria ROM de almacenamiento estático. Para resolver las bifurcaciones de la carta ASM sin incrementar innecesariamente las localidades de la memoria, se integra un arreglo de multiplexores externos que evalúan de manera dinámica las variables de entrada del sistema.
+
+Asimismo, la arquitectura se diseña de forma modular dividiendo la palabra de control en campos específicos de prueba, ligas y salidas. Esta organización resulta clave para incorporar salidas condicionales, permitiendo que las señales de control no dependan exclusivamente del registro activo, sino también de la evaluación instantánea de las condiciones externas, logrando así un balance superior entre flexibilidad de diseño y ahorro de espacio en la FPGA.
+
+\section*{Desarrollo}
+
+\subsection*{1. Diseñe una carta ASM con las siguientes características:}
+
+\begin{itemize}
+    \item Estados: 8 o más
+    \item Entradas: 4 (No es necesario utilizar una entrada auxiliar)
+    \item Salidas: 4
+    \begin{itemize}
+        \item 2 con lógica estándar
+        \item 2 con lógica negada
+    \end{itemize}
+    \item Colocar al menos 3 salidas condiciones como en la práctica anterior.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{firmado.jpeg}
+    \caption{Carta ASM firmada por la profesora.}
+    \label{fig:carta_asm_10_limpia_firmada}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+    \begin{tikzpicture}[
+        state/.style={draw, rounded corners=2pt, fill=blue!10, minimum width=2.8cm, minimum height=1.2cm, align=center, font=\small},
+        decision/.style={draw, diamond, aspect=2.1, fill=yellow!20, minimum width=1cm, minimum height=1cm, align=center, font=\small},
+        output/.style={draw, rounded corners=15pt, fill=gray!15, minimum width=2cm, minimum height=1cm, align=center, font=\small},
+        >={Stealth[length=2mm,width=2mm]}
+    ]
+        % ==============================================
+        % Nodos - Columna Izquierda (Centro en x = 0)
+        % ==============================================
+        \node[state, label={[anchor=south east, font=\small]north east:{0000}}] (E1) at (0,0) {};
+        \node[decision] (W0) at (0,-2) {\texttt{w}};
+        \node[output] (C0) at (-3,-2) {$S_1S_0$};
+        \node[state, label={[anchor=south east, font=\small]north east:{1001}}] (E10) at (4,-2) {$\overline{U_1}\overline{U_0}$};
+        \node[decision] (X0) at (4,-4) {\texttt{x}};
+        \node[output] (C1) at (1,-4) {$S_0$};
+        \node[output] (C2) at (7,-4) {$S_1$};
+        \node[state, label={[anchor=south east, font=\small]north east:{0001}}] (E2) at (-3,-6) {$\overline{U_1}$};
+        \node[decision] (Y0) at (-3,-8) {\texttt{y}};
+        \node[output] (C3) at (-6,-8) {$\overline{U_1}\overline{U_0}$};
+        \node[output] (C4) at (0,-8) {$S_1S_0$};
+        \node[state, label={[anchor=south east, font=\small]north east:{0111}}] (E8) at (-6,-11) {$S_1S_0$};
+        \node[state, label={[anchor=south east, font=\small]north east:{0100}}] (E5) at (-6,-14) {$\overline{U_1}\overline{U_0}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{0011}}] (E4) at (0,-11) {};
+        \node[state, label={[anchor=south east, font=\small]north east:{0010}}] (E3) at (9,-7) {$\overline{U_0}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{1000}}] (E9) at (9,-10) {$S_0$};
+        \node[decision] (Z0) at (0,-13) {\texttt{z}};
+        \node[output] (C5) at (-2,-15) {$S_0$};
+        \node[output] (C6) at (3,-13) {$\overline{U_0}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{0110}}] (E7) at (-2,-18) {$S_1$};
+        \node[state, label={[anchor=south east, font=\small]north east:{0101}}] (E6) at (7,-13) {$S_1S_0\overline{U_1}$};
+
+        \draw[->] (E1) -- (W0);
+        \draw[] (W0) -- node[above, font=\scriptsize] {0} (C0);
+        \draw[->] (C0) |- (E1);
+        \draw[->] (W0) -- node[above, font=\scriptsize] {1} (E10);
+        \draw[->] (E10) -- (X0);
+        \draw[] (X0) -- node[above, font=\scriptsize] {0} (C1);
+        \draw[] (X0) -- node[above, font=\scriptsize] {1} (C2);
+        \draw[->] (C1) -| (E2);
+        \draw[->] (E2) -- (Y0);
+        \draw[] (Y0) -- node[above, font=\scriptsize] {0} (C3);
+        \draw[] (Y0) -- node[above, font=\scriptsize] {1} (C4);
+        \draw[->] (C3) -- (E8);
+        \draw[->] (E8) -- (E5);
+        \draw[->] (C4) -- (E4);
+        \draw[->] (E5.east) -- ++(1,0) |- (E4.west);
+        \draw[->] (C2) -| (E3);
+        \draw[->] (E3) -- (E9);
+        \draw[->] (E4) -- (Z0);
+        \draw[] (Z0) -| node[above, font=\scriptsize] {0} (C5);
+        \draw[] (Z0) -- node[above, font=\scriptsize] {1} (C6);
+        \draw[->] (C5) -- (E7);
+        \draw[->] (C6) -- (E6);
+        \draw[->] (E6) |- (E9);
+        \draw[->] (E7.west) -- ++(-5,0) |- (E1.north west);
+        \draw[->] (E9.east) -- ++(1,0) |- (E1.east);
+    \end{tikzpicture}
+    \end{adjustbox}
+    \caption{Carta ASM de 10 estados con enrutamiento limpio ortogonal (Direccionamiento Entrada-Estado).}
+    \label{fig:carta_asm_10_limpia}
+\end{figure}
+
+\subsubsection*{2. Encuentre el tamaño de la memoria necesaria y el contenido de memoria utilizando el direccionamiento entrada-estado.}
+
+\subsection*{Cálculo del tamaño de memoria}
+
+Cabe tener en cuenta que para implementar salidas condicionales es necesario modificar el diagrama de bloques del direccionamiento entrada-estado.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{diagramaEntradaEstadoModificado.png}
+    \caption{Esquema del Direccionamiento Entrada-Estado Modificado.}
+    \label{fig:diagrama_modificado}
+\end{figure}
+
+Para implementar la carta ASM mediante el direccionamiento entrada-estado modificado, la dirección de la memoria se forma únicamente con el estado presente. La palabra almacenada contiene el bit de prueba, los estados siguientes y las salidas correspondientes a la evaluación de la entrada.
+
+\textbf{Tamaño de memoria}
+
+\[
+2^n \cdot m
+\]
+
+En donde:
+\begin{itemize}
+    \item $n$ = número de bits del estado presente.
+    \item $m$ = prueba + liga falsa + liga verdadera + salida falsa + salida verdadera.
+\end{itemize}
+
+En esta máquina se tienen 10 estados. Por lo tanto, se necesitan 4 bits para representarlos, ya que $2^4=16$ combinaciones posibles.
+
+\[
+n = 4\text{ bits}
+\]
+
+La dirección de memoria tendrá 4 bits y podrá seleccionar 16 localidades. Para calcular la longitud de la palabra ($m$), se suman los bits de los campos requeridos por la arquitectura:
+
+\begin{itemize}
+    \item \textbf{Prueba:} 2 bits (para seleccionar entre las entradas $w=00, x=01, y=10, z=11$).
+    \item \textbf{Liga Falsa:} 4 bits (estado siguiente si la evaluación es 0).
+    \item \textbf{Liga Verdadera:} 4 bits (estado siguiente si la evaluación es 1).
+    \item \textbf{Salida Falsa:} 4 bits (estado de las salidas $S_1, S_0, \overline{U_1}, \overline{U_0}$ si la evaluación es 0).
+    \item \textbf{Salida Verdadera:} 4 bits (estado de las salidas si la evaluación es 1).
+\end{itemize}
+
+\[
+m = 2 + 4 + 4 + 4 + 4 = 18\text{ bits}
+\]
+
+Por lo tanto, el tamaño de memoria necesario es:
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+\[
+2^4\cdot 18 = 16\cdot 18 = 288\text{ bits}
+\]
+\end{tcolorbox}
+
+\subsection*{Contenido de la memoria}
+
+El contenido de la memoria está formado por las 16 combinaciones posibles del estado presente. Al aplicar el concepto de \textbf{lógica mixta} (donde $S_1$ y $S_0$ encienden con \texttt{1}, mientras que $\overline{U_1}$ y $\overline{U_0}$ encienden con \texttt{0}), se definió que el estado inactivo base (nada encendido) corresponde al vector \texttt{0011}. 
+
+A continuación, se presenta la tabla de verdad completa (desplegada en 160 filas operativas), donde para cada estado se define qué ocurre con las rutas de liga y salidas bajo todas las variaciones de las entradas físicas.
+
+\begingroup
+\renewcommand{\arraystretch}{0.92}
+\setlength{\tabcolsep}{2pt}
+\tiny
+\begin{longtable}{|>{\centering\arraybackslash}p{0.045\textwidth}|>{\centering\arraybackslash}p{0.045\textwidth}|>{\centering\arraybackslash}p{0.045\textwidth}|>{\centering\arraybackslash}p{0.045\textwidth}|*{12}{>{\centering\arraybackslash}p{0.055\textwidth}|}}
+\caption{Tabla completa de transiciones y salidas de la máquina ASM (Lógica Mixta).}
+\label{tab:tabla_transiciones_estados_salidas_4}\\
+\hline
+\rowcolor{black!80}
+\multicolumn{4}{|c|}{\textcolor{white}{\textbf{Estado Actual}}} &
+\multicolumn{4}{c|}{\textcolor{white}{\textbf{Entradas}}} &
+\multicolumn{4}{c|}{\textcolor{white}{\textbf{Estado Siguiente}}} &
+\multicolumn{4}{c|}{\textcolor{white}{\textbf{Salidas}}} \\
+\hline
+\rowcolor{black!80}
+\textcolor{white}{\textbf{$P_3(t)$}} & \textcolor{white}{\textbf{$P_2(t)$}} &
+\textcolor{white}{\textbf{$P_1(t)$}} & \textcolor{white}{\textbf{$P_0(t)$}} &
+\textcolor{white}{\textbf{$w$}} & \textcolor{white}{\textbf{$x$}} &
+\textcolor{white}{\textbf{$y$}} & \textcolor{white}{\textbf{$z$}} &
+\textcolor{white}{\textbf{$L_3(t+1)$}} & \textcolor{white}{\textbf{$L_2(t+1)$}} &
+\textcolor{white}{\textbf{$L_1(t+1)$}} & \textcolor{white}{\textbf{$L_0(t+1)$}} &
+\textcolor{white}{\textbf{$S_1$}} & \textcolor{white}{\textbf{$S_0$}} &
+\textcolor{white}{\textbf{$\overline{U_1}$}} & \textcolor{white}{\textbf{$\overline{U_0}$}} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{black!80}
+\multicolumn{4}{|c|}{\textcolor{white}{\textbf{Estado Actual}}} &
+\multicolumn{4}{c|}{\textcolor{white}{\textbf{Entradas}}} &
+\multicolumn{4}{c|}{\textcolor{white}{\textbf{Estado Siguiente}}} &
+\multicolumn{4}{c|}{\textcolor{white}{\textbf{Salidas}}} \\
+\hline
+\rowcolor{black!80}
+\textcolor{white}{\textbf{$P_3(t)$}} & \textcolor{white}{\textbf{$P_2(t)$}} &
+\textcolor{white}{\textbf{$P_1(t)$}} & \textcolor{white}{\textbf{$P_0(t)$}} &
+\textcolor{white}{\textbf{$w$}} & \textcolor{white}{\textbf{$x$}} &
+\textcolor{white}{\textbf{$y$}} & \textcolor{white}{\textbf{$z$}} &
+\textcolor{white}{\textbf{$L_3(t+1)$}} & \textcolor{white}{\textbf{$L_2(t+1)$}} &
+\textcolor{white}{\textbf{$L_1(t+1)$}} & \textcolor{white}{\textbf{$L_0(t+1)$}} &
+\textcolor{white}{\textbf{$S_1$}} & \textcolor{white}{\textbf{$S_0$}} &
+\textcolor{white}{\textbf{$\overline{U_1}$}} & \textcolor{white}{\textbf{$\overline{U_0}$}} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+
+% ESTADO 0000: Evalúa W
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+\hline
+
+% ESTADO 0001: Evalúa Y
+0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 0 & 1 & 0 & 1 & 0 & 1 & 0 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 0 & 1 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 0 & 1 & 1 & 1 & 0 & 1 & 0 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+\hline
+
+% ESTADO 0010: Incondicional
+0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+\hline
+
+% ESTADO 0011: Evalúa Z
+0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 1 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 1 & 1 & 0 & 1 & 0 & 1 & 0 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 0 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 0 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+0 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
+\hline
+
+% ESTADO 0100: Incondicional
+0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+\hline
+
+% ESTADO 0101: Incondicional
+0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+\hline
+
+% ESTADO 0110: Incondicional
+0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+\hline
+
+% ESTADO 0111: Incondicional
+0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 0 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 0 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+\hline
+
+% ESTADO 1000: Incondicional
+1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+1 & 0 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+\hline
+
+% ESTADO 1001: Evalúa X
+1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+1 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+\hline
+\end{longtable}
+\endgroup
+
+\subsection*{3. Una vez que haya obtenido el contenido de memoria, implemente el direccionamiento entrada-estado utilizando el software de desarrollo Quartus y escriba el contenido de memoria obtenido.}
+
+La implementación se realizó en Quartus Prime 18.1 Lite, seleccionando la familia MAX 10 y el dispositivo 10M50DCF484C7G. El archivo \texttt{practica\_3.bdf} se utilizó como entidad de nivel superior; en él se conectaron los bloques que forman la ruta de datos de la máquina: el divisor de frecuencia, el registro de datos, un multiplexor de 4 a 1, dos multiplexores de 2 a 1, la memoria y un divisor de datos.
+
+El flujo de trabajo del sistema opera mediante un ciclo de ejecución síncrono. En cada flanco de subida del reloj (previamente escalado), el registro actualiza su valor, estableciendo el "estado presente" de 4 bits. Este valor se utiliza como dirección (bus de direcciones) para acceder a una localidad específica en la memoria ROM. Al recibir esta dirección, la memoria devuelve una palabra larga de 18 bits que contiene toda la información de control para dicho estado: qué entrada debe evaluarse, cuáles son los posibles estados siguientes y cuáles son las posibles salidas.
+
+Esta palabra de 18 bits pasa por un bloque divisor de datos que se encarga de separar (desempaquetar) la información en buses más pequeños y enviarla a los multiplexores. Primero, los bits de prueba dictan al multiplexor de 4:1 cuál de las entradas físicas ($w, x, y, z$) se debe evaluar en ese instante. El resultado de esta evaluación (un 0 o un 1) sirve como señal de selección simultánea para dos multiplexores de 2:1. El primer multiplexor de 2:1 selecciona el estado siguiente (liga verdadera o liga falsa) y lo retroalimenta a la entrada del registro para el próximo ciclo de reloj. El segundo multiplexor selecciona el arreglo de salidas correspondiente y lo dirige a los pines de salida de la FPGA.
+
+\subsubsection*{Divisor de Frecuencia (\texttt{div\_frec.vhd})}
+
+Implementa un contador de 28 bits que incrementa su valor con cada pulso del reloj de la FPGA. Su propósito es dividir la alta frecuencia de operación para generar una señal de reloj lenta (\texttt{div\_clk}) a partir del bit 25 de la cuenta. Esto permite que las transiciones de estado sean perceptibles a simple vista durante la demostración física.
+
+\begin{lstlisting}[style=vhdl, caption={Código completo del divisor de frecuencia.}, label={lst:div_frec}]
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity div_frec is
+	Port (reloj : in std_logic;
+			div_clk : out std_logic);
+end div_frec;
+
+architecture Behavioral of div_frec is
+begin
+	process (reloj)
+	variable cuenta : std_logic_vector (27 downto 0) := X"0000000";
+	begin
+		if rising_edge (reloj) then
+
+			--if cuenta 0 "4000000" then
+			if cuenta = X"2FAF080" then
+				cuenta := X"0000000";
+			else
+				cuenta := cuenta+1;
+			end if;
+		end if;
+		div_clk <= cuenta(25);
+	end process;
+end Behavioral;
+\end{lstlisting}
+
+\subsubsection*{Registro de Estado (\texttt{register3.vhd})}
+
+Funciona como la memoria volátil de la máquina, almacenando el estado actual. Está configurado para manejar un bus de 4 bits. En cada flanco positivo del reloj dividido, actualiza su salida (\texttt{DATA\_OUT}) con el valor del estado siguiente (\texttt{DATA\_IN}), el cual servirá como la nueva dirección de lectura para la memoria ROM. Cuenta también con un reinicio asíncrono para volver al estado "0000".
+
+\begin{lstlisting}[style=vhdl, caption={Código completo del registro de estado.}, label={lst:div_frec}]
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity register3 is
+	Port( CLK : in STD_LOGIC;
+			RESET : in STD_LOGIC;
+			DATA_IN : in STD_LOGIC_VECTOR(3 downto 0); --Liga
+			DATA_OUT : out STD_LOGIC_VECTOR(3 downto 0)--Edo Presente
+			);
+end register3;
+
+architecture Behavioral of register3 is
+	signal internal_value : std_logic_vector(3 downto 0) := B"0000";
+begin
+	process (CLK, RESET, DATA_IN)
+	begin
+		if RESET = '0' then
+			internal_value <= B"0000";
+		elsif rising_edge (CLK) then
+			internal_value <= DATA_IN;
+		end if;
+	end process;
+
+	process(internal_value)
+	begin
+		DATA_OUT <= internal_value;
+	end process;
+end Behavioral;
+\end{lstlisting}
+
+\subsubsection*{Memoria ROM (\texttt{memory.vhd})}
+
+Es el componente central del direccionamiento por trayectoria. Se estructuró como un arreglo de memoria constante de 16 localidades (direccionadas por los 4 bits del estado presente) con palabras de 18 bits de longitud. En ella se mapearon manualmente los campos lógicos correspondientes a los 10 estados de la carta ASM, dejando los 6 estados no utilizados en cero.
+
+\begin{lstlisting}[style=vhdl, caption={Código completo de la memoria ROM.}, label={lst:memory}]
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity memory is
+	Port( dir : in STD_LOGIC_VECTOR( 3 downto 0); -- 4 bits de direcciones (n=4)
+			data : out STD_LOGIC_VECTOR( 17 downto 0) -- 18 bits de memoria por registro (m=18)
+			);
+end memory;
+
+architecture Behavioral of memory is
+	type mem is array(0 to 15) of std_logic_vector( 17 downto 0);
+
+	signal internal_mem : mem := (
+
+		-- ESTADO 0000: Evalúa 'w' (00). Base: Nada (0011)
+		-- Falso: S1, S0 ON (1111), Liga 0000.  Verdadero: Nada ON (0011), Liga 1001.
+		0 => B"00_0000_1001_1111_0011",
+
+		-- ESTADO 0001: Salida base U1' ON (0001). Evalúa 'y' (10).
+		-- Falso: U1', U0' ON (0000), Liga 0111.
+		-- Verdadero: Base + S1, S0 ON (1101), Liga 0011.
+		1 => B"10_0111_0011_0000_1101",
+
+		-- ESTADO 0010: Incondicional. Salida U0' ON (0010). Liga directa a 1000.
+		2 => B"00_1000_1000_0010_0010",
+
+		-- ESTADO 0011: Evalúa 'z' (11). Base: Nada (0011)
+		-- Falso: S0 ON (0111), Liga 0110. Verdadero: U0' ON (0010), Liga 0101.
+		3 => B"11_0110_0101_0111_0010",
+
+		-- ESTADO 0100: Incondicional. Salida U1', U0' ON (0000). Liga directa a 0011.
+		4 => B"00_0011_0011_0000_0000",
+
+		-- ESTADO 0101: Incondicional. Salida S1, S0, U1' ON (1101). Liga directa a 1000.
+		5 => B"00_1000_1000_1101_1101",
+
+		-- ESTADO 0110: Incondicional. Salida S1 ON (1011). Liga directa a 0000.
+		6 => B"00_0000_0000_1011_1011",
+
+		-- ESTADO 0111: Incondicional. Salida S1, S0 ON (1111). Liga directa a 0100.
+		7 => B"00_0100_0100_1111_1111",
+
+		-- ESTADO 1000: Incondicional. Salida S0 ON (0111). Liga directa a 0000.
+		8 => B"00_0000_0000_0111_0111",
+
+		-- ESTADO 1001: Salida base U1', U0' ON (0000). Evalúa 'x' (01).
+		-- Falso: Base + S0 ON (0100), Liga 0001.
+		-- Verdadero: Base + S1 ON (1000), Liga 0010.
+		9 => B"01_0001_0010_0100_1000",
+
+		-- ESTADOS SIN USO (10 al 15): Llenos con el estado de "Apagado" para todos los LEDs
+		others => B"00_0000_0000_0011_0011"
+	);
+
+begin
+	process(dir)
+	begin
+		data <= internal_mem(conv_integer(unsigned(dir)));
+	end process;
+end Behavioral;
+\end{lstlisting}
+
+\subsubsection*{Divisor de Datos (\texttt{divisor\_datos.vhd})}
+
+Es un bloque estructural de enrutamiento. Su único propósito es recibir la palabra completa de 18 bits desde la memoria y desempaquetarla en cinco buses independientes: Prueba (2 bits), Liga Falsa (4 bits), Liga Verdadera (4 bits), Salida Falsa (4 bits) y Salida Verdadera (4 bits).
+
+\begin{lstlisting}[style=vhdl, caption={Código completo del divisor de datos.}, label={lst:divisor_datos}]
+    library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity divisor_datos is
+	Port( entrada : in STD_LOGIC_VECTOR( 17 downto 0); -- 18 bits que vienen de la memoria
+
+			Prueba           : out STD_LOGIC_VECTOR(1 downto 0); -- Para el MUX4 (2 bits)
+			Liga_Falsa       : out STD_LOGIC_VECTOR(3 downto 0); -- Para el MUX2_3 (4 bits)
+			Liga_Verdadera   : out STD_LOGIC_VECTOR(3 downto 0); -- Para el MUX2_3 (4 bits)
+			Salida_Falsa     : out STD_LOGIC_VECTOR(3 downto 0); -- Para el MUX2_4 (4 bits)
+			Salida_Verdadera : out STD_LOGIC_VECTOR(3 downto 0)  -- Para el MUX2_4 (4 bits)
+			);
+end divisor_datos;
+
+architecture Behavioral of divisor_datos is
+begin
+	process (entrada)
+	begin
+
+		Prueba           <= entrada(17 downto 16);
+		Liga_Falsa       <= entrada(15 downto 12);
+		Liga_Verdadera   <= entrada(11 downto 8);
+		Salida_Falsa     <= entrada(7 downto 4);
+		Salida_Verdadera <= entrada(3 downto 0);
+
+	end process;
+end Behavioral;
+\end{lstlisting}
+
+\subsubsection*{Multiplexor Selector de Entradas (\texttt{mux4.vhd})}
+
+Implementa un multiplexor de 4 a 1 para señales de 1 bit. Utiliza el bus de \texttt{Prueba} (2 bits) como selector para conmutar entre cuatro condiciones lógicas de la carta ASM (representadas por las entradas $I_0, I_1, I_2, I_3$). La salida elegida dictamina si el flujo tomará el camino de la liga/salida falsa (0) o verdadera (1).
+
+\begin{lstlisting}[style=vhdl, caption={Código completo del multiplexor selector de entradas.}, label={lst:mux4}]
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity mux2_4 is
+	Port( sel : in STD_LOGIC;
+			Salida_Falsa, Salida_Verdadera : in STD_LOGIC_VECTOR(3 downto 0); -- Entradas de salidas
+			O : out STD_LOGIC_VECTOR(3 downto 0)
+			);
+end mux2_4;
+
+architecture Behavioral of mux2_4 is
+begin
+	process (sel, Salida_Falsa, Salida_Verdadera) -- Agregar variables
+	begin
+		if sel = '1' then
+			O <= Salida_Verdadera;
+		else
+			O <= Salida_Falsa;
+		end if;
+	end process;
+end Behavioral;
+\end{lstlisting}
+
+\subsubsection*{Multiplexores Selectores de Liga y Salida (\texttt{mux2\_3.vhd} y \texttt{mux2\_4.vhd})}
+
+Ambos componentes implementan un comportamiento idéntico, actuando como multiplexores de 2 a 1 para buses de 4 bits, gobernados por el resultado del selector de entradas.
+\begin{itemize}
+\item \textbf{\texttt{mux2\_3.vhd} (Liga):} Selecciona cuál será el estado siguiente de la máquina, eligiendo entre la \texttt{Liga\_Falsa} o la \texttt{Liga\_Verdadera}.
+\item \textbf{\texttt{mux2\_4.vhd} (Salida):} Establece el estado de los indicadores luminosos de la FPGA, conmutando entre la \texttt{Salida\_Falsa} o la \texttt{Salida\_Verdadera}.
+\end{itemize}
+
+\begin{lstlisting}[style=vhdl, caption={Código completo del multiplexor selector de liga.}, label={lst:mux2_3}]
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity mux2_3 is
+	Port( sel : in STD_LOGIC;
+			Liga_Falsa, Liga_Verdadera : in STD_LOGIC_VECTOR(3 downto 0); -- Ligas de 4 bits
+			O : out STD_LOGIC_VECTOR(3 downto 0) -- Salida ajustada a 4 bits
+			);
+end mux2_3;
+
+architecture Behavioral of mux2_3 is
+begin
+	process (sel, Liga_Falsa, Liga_Verdadera) -- Agregar variables a la lista de sensibilidad
+	begin
+		if sel = '1' then
+			O <= Liga_Verdadera;
+		else
+			O <= Liga_Falsa;
+		end if;
+	end process;
+end Behavioral;
+\end{lstlisting}
+
+\begin{lstlisting}[style=vhdl, caption={Código completo del multiplexor selector de salida.}, label={lst:mux2_4}]
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity mux2_4 is
+	Port( sel : in STD_LOGIC;
+			Salida_Falsa, Salida_Verdadera : in STD_LOGIC_VECTOR(3 downto 0); -- Entradas de salidas
+			O : out STD_LOGIC_VECTOR(3 downto 0)
+			);
+end mux2_4;
+
+architecture Behavioral of mux2_4 is
+begin
+	process (sel, Salida_Falsa, Salida_Verdadera) -- Agregar variables
+	begin
+		if sel = '1' then
+			O <= Salida_Verdadera;
+		else
+			O <= Salida_Falsa;
+		end if;
+	end process;
+end Behavioral;
+\end{lstlisting}
+
+\section*{Discusión de Resultados}
+
+\subsection*{5. Simule su diseño para probar su funcionamiento. Recuerden que en sus simulaciones debe aparecer el contenido de la memoria además del estado presente.}
+
+\subsubsection*{Simulación 1}
+
+Esta primera simulación se realizó con las entradas \(\texttt{W=0,X=0, Y=1, Z=1}\) como valor inicial. Y se modificaron las entradas para visualizar el ciclo más largo de la carta ASM, las entradas en cuestión son \texttt{W=1,X=0, Y=0, Z=0}. La secuencia de estados y salidas es la siguiente:
+
+\begin{enumerate}
+    \item[\textcolor{red}{sec-1:}] Estado: \texttt{0000} \(\rightarrow\) Salida: \texttt{1111} \(\rightarrow\) Estado siguiente: \texttt{0000} \(\rightarrow\)
+    \item[\textcolor{red}{sec-2:}] Estado: \texttt{0000} \(\rightarrow\) Salida: \texttt{0011} \(\rightarrow\) Estado siguiente: \texttt{1001} \(\rightarrow\)
+    \item[\textcolor{red}{sec-3:}] Estado: \texttt{1001} \(\rightarrow\) Salida: \texttt{0100} \(\rightarrow\) Estado siguiente: \texttt{0001} \(\rightarrow\)
+    \item[\textcolor{red}{sec-4:}] Estado: \texttt{0001} \(\rightarrow\) Salida: \texttt{0000} \(\rightarrow\) Estado siguiente: \texttt{0111} \(\rightarrow\)
+    \item[\textcolor{red}{sec-5:}] Estado: \texttt{0111} \(\rightarrow\) Salida: \texttt{1111} \(\rightarrow\) Estado siguiente: \texttt{0100} \(\rightarrow\)
+    \item[\textcolor{red}{sec-6:}] Estado: \texttt{0100} \(\rightarrow\) Salida: \texttt{0000} \(\rightarrow\) Estado siguiente: \texttt{0011} \(\rightarrow\)
+    \item[\textcolor{red}{sec-7:}] Estado: \texttt{0011} \(\rightarrow\) Salida: \texttt{0111} \(\rightarrow\) Estado siguiente: \texttt{0110} \(\rightarrow\)
+    \item[\textcolor{red}{sec-8:}] Estado: \texttt{0110} \(\rightarrow\) Salida: \texttt{1011} \(\rightarrow\) Estado siguiente: \texttt{0000} \(\rightarrow\)
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        % Nodo de la imagen base
+        \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+            {\includegraphics[width=\textwidth]{simulacion1.png}};
+
+        % Scope con coordenadas relativas (0 a 1) para un ajuste milimétrico e independiente del tamaño de página.
+        \begin{scope}[x={(tarjeta.south east)},y={(tarjeta.north west)}]
+
+            % Definimos la altura de las cajas rojas para cubrir todas las señales
+            \def\ybot{0.00}
+            \def\ytop{0.90}
+
+            % Trazos de los recuadros rojos calculados a partir de los tiempos de simulación (ns)
+            \draw[red, thick] (0.1078, \ytop) rectangle (0.1788, \ybot); % sec-1  [0ns - 100ns]
+            \draw[red, thick] (0.1788, \ytop) rectangle (0.2139, \ybot); % sec-2  [100ns - 120ns]
+            \draw[red, thick] (0.2139, \ytop) rectangle (0.2849, \ybot); % sec-3  [120ns - 200ns]
+            \draw[red, thick] (0.2849, \ytop) rectangle (0.3559, \ybot); % sec-4  [200ns - 280ns]
+            \draw[red, thick] (0.3559, \ytop) rectangle (0.4269, \ybot); % sec-5  [280ns - 360ns]
+            \draw[red, thick] (0.4269, \ytop) rectangle (0.4979, \ybot); % sec-1b [360ns - 440ns]
+            \draw[red, thick] (0.4979, \ytop) rectangle (0.5689, \ybot); % sec-2b [440ns - 520ns]
+            \draw[red, thick] (0.5689, \ytop) rectangle (0.6399, \ybot); % sec-3b [520ns - 600ns]
+
+            % Posición vertical para las etiquetas de texto
+            \def\ytext{0.03}
+            
+            % Etiquetas centradas en el medio de cada recuadro (calculadas automáticamente)
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.1593, \ytext) {sec-1};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.2061, \ytext) {sec-2};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.2451, \ytext) {sec-3};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.3075, \ytext) {sec-4};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.3699, \ytext) {sec-5};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.4323, \ytext) {sec-6};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.4947, \ytext) {sec-7};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.5571, \ytext) {sec-8};
+
+        \end{scope}
+    \end{tikzpicture}
+    \caption{Simulación 1 de la máquina de estados en ModelSim, segmentada por transiciones de estado.}
+    \label{fig:simulacion_sec_4}
+\end{figure}
+
+Se observa que la máquina de estados sigue correctamente la carta ASM, conmutando entre los estados y salidas esperadas según las condiciones de entrada.
+
+\subsubsection*{Simulación 2}
+
+Para esta segunda simulación se parte de igual forma desde las entradas iniciales \(\texttt{W=0,X=0, Y=0, Z=0}\) y se modifican las entradas a \texttt{W=1,X=0, Y=1, Z=1} para visualizar la segunda secuencia más larga de la carta ASM. La secuencia de estados y salidas es la siguiente:
+
+\begin{enumerate}
+    \item[\textcolor{red}{sec-1:}] Estado: \texttt{0000} \(\rightarrow\) Salida: \texttt{1111} \(\rightarrow\) Estado siguiente: \texttt{0000} \(\rightarrow\)
+    \item[\textcolor{red}{sec-2:}] Estado: \texttt{0000} \(\rightarrow\) Salida: \texttt{0011} \(\rightarrow\) Estado siguiente: \texttt{1001} \(\rightarrow\)
+    \item[\textcolor{red}{sec-3:}] Estado: \texttt{1001} \(\rightarrow\) Salida: \texttt{0100} \(\rightarrow\) Estado siguiente: \texttt{0001} \(\rightarrow\)
+    \item[\textcolor{red}{sec-4:}] Estado: \texttt{0001} \(\rightarrow\) Salida: \texttt{1101} \(\rightarrow\) Estado siguiente: \texttt{0011} \(\rightarrow\)
+    \item[\textcolor{red}{sec-5:}] Estado: \texttt{0011} \(\rightarrow\) Salida: \texttt{0100} \(\rightarrow\) Estado siguiente: \texttt{0101} \(\rightarrow\)
+    \item[\textcolor{red}{sec-6:}] Estado: \texttt{0101} \(\rightarrow\) Salida: \texttt{1101} \(\rightarrow\) Estado siguiente: \texttt{1000} \(\rightarrow\)
+    \item[\textcolor{red}{sec-7:}] Estado: \texttt{1000} \(\rightarrow\) Salida: \texttt{0111} \(\rightarrow\) Estado siguiente: \texttt{0000} \(\rightarrow\)
+\end{enumerate}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        % Nodo de la imagen base
+        \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+            {\includegraphics[width=\textwidth]{simulacion2.png}};
+
+        % Scope con coordenadas relativas (0 a 1) para un ajuste milimétrico e independiente del tamaño de página.
+        \begin{scope}[x={(tarjeta.south east)},y={(tarjeta.north west)}]
+
+            % Definimos la altura de las cajas rojas para cubrir todas las señales
+            \def\ybot{0.00}
+            \def\ytop{0.90}
+
+            % Trazos de los recuadros rojos calculados a partir de los tiempos de simulación (ns)
+            \draw[blue, thick] (0.1078, \ytop) rectangle (0.1788, \ybot); % sec-1  [0ns - 100ns]
+            \draw[blue, thick] (0.1788, \ytop) rectangle (0.2139, \ybot); % sec-2  [100ns - 120ns]
+            \draw[blue, thick] (0.2139, \ytop) rectangle (0.2849, \ybot); % sec-3  [120ns - 200ns]
+            \draw[blue, thick] (0.2849, \ytop) rectangle (0.3559, \ybot); % sec-4  [200ns - 280ns]
+            \draw[blue, thick] (0.3559, \ytop) rectangle (0.4269, \ybot); % sec-5  [280ns - 360ns]
+            \draw[blue, thick] (0.4269, \ytop) rectangle (0.4979, \ybot); % sec-1b [360ns - 440ns]
+            \draw[blue, thick] (0.4979, \ytop) rectangle (0.5689, \ybot); % sec-2b [440ns - 520ns]
+
+            % Posición vertical para las etiquetas de texto
+            \def\ytext{0.03}
+            
+            % Etiquetas centradas en el medio de cada recuadro (calculadas automáticamente)
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.1593, \ytext) {sec-1};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.2061, \ytext) {sec-2};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.2451, \ytext) {sec-3};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.3075, \ytext) {sec-4};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.3699, \ytext) {sec-5};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.4323, \ytext) {sec-6};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.4947, \ytext) {sec-7};
+
+        \end{scope}
+    \end{tikzpicture}
+    \caption{Simulación 1 de la máquina de estados en ModelSim, segmentada por transiciones de estado.}
+    \label{fig:simulacion_sec_4}
+\end{figure}
+
+En este camnio exploramos a su vez dos posibles ciclos tomando como \texttt{Y = 1, Z = 1}, de tal forma que la máquina nos guíe a un camino diferente al que vimos en la primera simulación. En esta caso llevandonos hacia el segundo camino que nos lleva al estado inicial \texttt{0000}.
+
+\subsubsection*{Simulacion 3}
+
+Para esta tercera y ultima simulación exploramos el ultimo y más corto ciclo de la carta ASM, partiendo de las entradas iniciales \(\texttt{W=0,X=0, Y=0, Z=0}\) y modificando las entradas a \(\texttt{W=1,X=1, Y=1, Z=1}\). La secuencia de estados y salidas es la siguiente:
+
+\begin{enumerate}
+    \item[\textcolor{red}{sec-1:}] Estado: \texttt{0000} \(\rightarrow\) Salida: \texttt{1111} \(\rightarrow\) Estado siguiente: \texttt{0000} \(\rightarrow\)
+    \item[\textcolor{red}{sec-2:}] Estado: \texttt{0000} \(\rightarrow\) Salida: \texttt{0011} \(\rightarrow\) Estado siguiente: \texttt{1001} \(\rightarrow\)
+    \item[\textcolor{red}{sec-3:}] Estado: \texttt{1001} \(\rightarrow\) Salida: \texttt{1000} \(\rightarrow\) Estado siguiente: \texttt{0010} \(\rightarrow\)
+    \item[\textcolor{red}{sec-4:}] Estado: \texttt{0010} \(\rightarrow\) Salida: \texttt{0010} \(\rightarrow\) Estado siguiente: \texttt{1000} \(\rightarrow\)
+    \item[\textcolor{red}{sec-5:}] Estado: \texttt{1000} \(\rightarrow\) Salida: \texttt{0111} \(\rightarrow\) Estado siguiente: \texttt{0000} \(\rightarrow\)
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        % Nodo de la imagen base
+        \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+            {\includegraphics[width=\textwidth]{simulacion3.png}};
+
+        % Scope con coordenadas relativas (0 a 1) para un ajuste milimétrico e independiente del tamaño de página.
+        \begin{scope}[x={(tarjeta.south east)},y={(tarjeta.north west)}]
+
+            % Definimos la altura de las cajas rojas para cubrir todas las señales
+            \def\ybot{0.00}
+            \def\ytop{0.90}
+
+            % Trazos de los recuadros rojos calculados a partir de los tiempos de simulación (ns)
+            \draw[ForestGreen, thick] (0.1078, \ytop) rectangle (0.1788, \ybot); % sec-1  [0ns - 100ns]
+            \draw[ForestGreen, thick] (0.1788, \ytop) rectangle (0.2139, \ybot); % sec-2  [100ns - 120ns]
+            \draw[ForestGreen, thick] (0.2139, \ytop) rectangle (0.2849, \ybot); % sec-3  [120ns - 200ns]
+            \draw[ForestGreen, thick] (0.2849, \ytop) rectangle (0.3559, \ybot); % sec-4  [200ns - 280ns]
+            \draw[ForestGreen, thick] (0.3559, \ytop) rectangle (0.4269, \ybot); % sec-5  [280ns - 360ns]
+
+            % Posición vertical para las etiquetas de texto
+            \def\ytext{0.03}
+            
+            % Etiquetas centradas en el medio de cada recuadro (calculadas automáticamente)
+            \node[text=ForestGreen, font=\fontsize{5}{0}\selectfont, align=center] at (0.1593, \ytext) {sec-1};
+            \node[text=ForestGreen, font=\fontsize{5}{0}\selectfont, align=center] at (0.2061, \ytext) {sec-2};
+            \node[text=ForestGreen, font=\fontsize{5}{0}\selectfont, align=center] at (0.2451, \ytext) {sec-3};
+            \node[text=ForestGreen, font=\fontsize{5}{0}\selectfont, align=center] at (0.3075, \ytext) {sec-4};
+            \node[text=ForestGreen, font=\fontsize{5}{0}\selectfont, align=center] at (0.3699, \ytext) {sec-5};
+
+        \end{scope}
+    \end{tikzpicture}
+    \caption{Simulación 1 de la máquina de estados en ModelSim, segmentada por transiciones de estado.}
+    \label{fig:simulacion_sec_4}
+\end{figure}
+
+Notar que las entradas \texttt{Y=1} y \texttt{Z=1} no afectan el flujo de la máquina, ya que este ciclo depende del valor de la entrada \texttt{X} y de la evaluación de la entrada \texttt{W}.
+
+\section*{Conclusiones}
+
+\subsection*{Andrea Saldaña Navarrete - 320206384}
+
+El desarrollo de esta práctica permitió comprender a profundidad la aplicación práctica del método de direccionamiento entrada-estado modificado para la construcción de máquinas de estados utilizando memorias ROM. Mediante el diseño y mapeo de la carta ASM de 10 estados, se comprobó cómo la separación de la palabra de memoria en campos de prueba, ligas y salidas optimiza los recursos de hardware en la FPGA. Asimismo, la validación a través de las simulaciones en ModelSim demostró que el enrutamiento síncrono y la lógica mixta implementada operan de forma correcta ante las diferentes combinaciones de entrada, garantizando la transición precisa de los estados del sistema.
+
+\subsection*{Hansel Yael Tepal Briseño - 320078282}
+
+La implementación de la arquitectura basada en memoria en el software Quartus Prime evidenció las ventajas de estructurar sistemas digitales complejos mediante componentes modulares en VHDL, tales como el divisor de frecuencia, el registro de estado y los bloques multiplexores. Se corroboró que al utilizar únicamente los bits del estado presente como dirección de la ROM, se accede de manera eficiente a los 18 bits de control necesarios para gobernar las trayectorias de la máquina. Las pruebas de simulación confirmaron que el sistema responde de manera síncrona, cumpliendo con los requerimientos de salidas condicionales y ciclos de ejecución establecidos en la carta ASM.
+
+\subsection*{Luis Antonio Ugartechea González - 320223822}
+
+Este trabajo consolidó los conocimientos sobre el diseño de autómatas y la integración de memorias ROM con lógica combinacional externa para la síntesis de controladores digitales. El análisis del dimensionamiento de la memoria demostró ser una solución eficiente para manejar múltiples condiciones y caminos de ejecución sin caer en un consumo excesivo de localidades. Finalmente, la verificación en las simulaciones confirmó que tanto los ciclos largos como los cortos de la máquina operan sin discrepancias respecto a la teoría, validando el correcto funcionamiento del hardware implementado en la tarjeta de desarrollo.
+
+\input{template/biblio.tex}
+
+\end{document}
