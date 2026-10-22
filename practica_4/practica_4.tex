@@ -20,6 +20,8 @@ En el ámbito del diseño digital, el método de direccionamiento entrada-estado
 
 La palabra de memoria se divide en campos específicos: una porción de prueba que indica al selector de entradas qué variable evaluar, un par de campos de "liga" que guardan los posibles estados siguientes (falso o verdadero), y un par de campos destinados a las salidas correspondientes a cada condición. El dimensionamiento y la organización de la memoria dependen directamente de la cantidad de estados y de la suma de las longitudes de estos campos lógicos, logrando una reducción significativa en el número de localidades de memoria requeridas en comparación con otros métodos.
 
+Adicionalmente, para cumplir con los requerimientos de diseño de sistemas complejos, esta arquitectura se adapta para soportar \textbf{salidas condicionales}, permitiendo que el estado de las salidas no solo dependa del estado presente, sino también de la evaluación directa de las variables de entrada mediante lógica combinacional externa, optimizando el control de los actuadores o indicadores del sistema.
+
 \section*{Desarrollo}
 
 \subsection*{1. Diseñe una carta ASM con las siguientes características:}
@@ -849,15 +851,15 @@ Notar que las entradas \texttt{Y=1} y \texttt{Z=1} no afectan el flujo de la má
 
 \subsection*{Andrea Saldaña Navarrete - 320206384}
 
-
+El desarrollo de esta práctica permitió comprender a profundidad la aplicación práctica del método de direccionamiento entrada-estado modificado para la construcción de máquinas de estados utilizando memorias ROM. Mediante el diseño y mapeo de la carta ASM de 10 estados, se comprobó cómo la separación de la palabra de memoria en campos de prueba, ligas y salidas optimiza los recursos de hardware en la FPGA. Asimismo, la validación a través de las simulaciones en ModelSim demostró que el enrutamiento síncrono y la lógica mixta implementada operan de forma correcta ante las diferentes combinaciones de entrada, garantizando la transición precisa de los estados del sistema.
 
 \subsection*{Hansel Yael Tepal Briseño - 320078282}
 
-
+La implementación de la arquitectura basada en memoria en el software Quartus Prime evidenció las ventajas de estructurar sistemas digitales complejos mediante componentes modulares en VHDL, tales como el divisor de frecuencia, el registro de estado y los bloques multiplexores. Se corroboró que al utilizar únicamente los bits del estado presente como dirección de la ROM, se accede de manera eficiente a los 18 bits de control necesarios para gobernar las trayectorias de la máquina. Las pruebas de simulación confirmaron que el sistema responde de manera síncrona y robusta, cumpliendo con los requerimientos de salidas condicionales y ciclos de ejecución establecidos en la carta ASM.
 
 \subsection*{Luis Antonio Ugartechea González - 320223822}
 
-
+Este trabajo consolidó los conocimientos sobre el diseño de autómatas y la integración de memorias ROM con lógica combinacional externa para la síntesis de controladores digitales. El análisis del dimensionamiento de la memoria demostró ser una solución eficiente para manejar múltiples condiciones y caminos de ejecución sin incurrir en un consumo excesivo de localidades. Finalmente, la verificación en las simulaciones confirmó que tanto los ciclos largos como los cortos de la máquina operan sin discrepancias respecto a la teoría, validando el correcto funcionamiento del hardware implementado en la tarjeta de desarrollo.
 
 \input{template/biblio.tex}
 
