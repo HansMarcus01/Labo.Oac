@@ -332,28 +332,6 @@ refer to the applicable agreement for further details.
 	(flipy_rotate90)
 )
 (symbol
-	(rect 688 -16 856 64)
-	(text "memory" (rect 5 0 45 11)(font "Arial" ))
-	(text "inst" (rect 8 64 25 75)(font "Arial" ))
-	(port
-		(pt 0 32)
-		(input)
-		(text "dir[3..0]" (rect 0 0 37 11)(font "Arial" ))
-		(text "dir[3..0]" (rect 21 27 58 38)(font "Arial" ))
-		(line (pt 0 32)(pt 16 32)(line_width 3))
-	)
-	(port
-		(pt 168 32)
-		(output)
-		(text "data[17..0]" (rect 0 0 53 11)(font "Arial" ))
-		(text "data[17..0]" (rect 103 27 156 38)(font "Arial" ))
-		(line (pt 168 32)(pt 152 32)(line_width 3))
-	)
-	(drawing
-		(rectangle (rect 16 16 152 64))
-	)
-)
-(symbol
 	(rect 336 40 576 152)
 	(text "register3" (rect 5 0 48 11)(font "Arial" ))
 	(text "inst_reg" (rect 8 96 48 107)(font "Arial" ))
@@ -387,6 +365,28 @@ refer to the applicable agreement for further details.
 	)
 	(drawing
 		(rectangle (rect 16 16 224 96))
+	)
+)
+(symbol
+	(rect 688 -16 856 64)
+	(text "memory" (rect 5 0 45 11)(font "Arial" ))
+	(text "inst" (rect 8 64 25 75)(font "Arial" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "dir[3..0]" (rect 0 0 37 11)(font "Arial" ))
+		(text "dir[3..0]" (rect 21 27 58 38)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32)(line_width 3))
+	)
+	(port
+		(pt 168 32)
+		(output)
+		(text "data[17..0]" (rect 0 0 53 11)(font "Arial" ))
+		(text "data[17..0]" (rect 103 27 156 38)(font "Arial" ))
+		(line (pt 168 32)(pt 152 32)(line_width 3))
+	)
+	(drawing
+		(rectangle (rect 16 16 152 64))
 	)
 )
 (connector

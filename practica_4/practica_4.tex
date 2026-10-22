@@ -6,8 +6,6 @@
 
 \usetikzlibrary{fit,tikzmark}
 
-% \input{template/header.tex}
-
 \begin{document}
 
 \input{template/title_page.tex}
@@ -18,11 +16,9 @@ Familiarizar al alumno en el conocimiento de construcción de máquinas de estad
 
 \section*{Introducción}
 
-% En el ámbito del diseño digital, el método de direccionamiento por trayectoria permite implementar cartas ASM almacenando el comportamiento lógico directamente en una memoria. Este tipo de direccionamiento guarda el estado siguiente y las salidas de cada estado en una localidad específica [\protect\hyperlink{1-diana-karen}{1}]. La porción de la memoria que se encarga de indicar cuál será el estado siguiente recibe el nombre de "liga", mientras que otra porción se destina a la parte de las salidas [\protect\hyperlink{1-diana-karen}{1}]. Para que el sistema determine la dirección de memoria exacta a la que debe acceder en cada pulso de reloj, se concatenan los bits de la liga del estado presente junto con las variables de entrada [\protect\hyperlink{1-diana-karen}{1}], [\protect\hyperlink{2-facultad-ingenieria}{2}].
+En el ámbito del diseño digital, el método de direccionamiento entrada-estado modificado permite implementar cartas ASM almacenando el comportamiento lógico en una memoria ROM y delegando la evaluación de las condiciones a un arreglo de multiplexores externos. A diferencia del direccionamiento entrada-estado clásico, la dirección de memoria exacta a la que debe acceder el sistema en cada pulso de reloj se forma únicamente con los bits del estado presente de la máquina.
 
-% Para poder construir el contenido de la tabla de memoria, es un requisito indispensable asignar previamente a cada estado de la carta ASM una codificación o representación binaria [\protect\hyperlink{1-diana-karen}{1}]. La cantidad mínima de bits requeridos depende del número total de estados de la máquina; por ejemplo, si se cuenta con 5 estados, se requieren por lo menos 3 bits para representarlos de manera binaria (ya que $2^3 = 8$ combinaciones posibles) [\protect\hyperlink{2-facultad-ingenieria}{2}]. Asimismo, la regla fundamental al momento de estructurar el contenido de memoria establece que, para cada estado, es necesario considerar todas las posibles combinaciones de las variables de entrada, aun cuando algunas de ellas no se utilicen de manera explícita en ese estado determinado [\protect\hyperlink{1-diana-karen}{1}].
-
-% Finalmente, el dimensionamiento y la organización de la memoria dependen directamente de la suma de variables. Si se diseña una carta ASM de 5 estados (3 bits de liga), 3 entradas y 4 salidas, la memoria requerirá un bus de direcciones de 6 bits (3 de liga + 3 de entrada) y palabras de 7 bits de longitud (3 de liga siguiente + 4 de salida). Esto da como resultado una organización de memoria de $2^6 \times 7$, es decir, de $64 \times 7$ bits [\protect\hyperlink{2-facultad-ingenieria}{2}].
+La palabra de memoria se divide en campos específicos: una porción de prueba que indica al selector de entradas qué variable evaluar, un par de campos de "liga" que guardan los posibles estados siguientes (falso o verdadero), y un par de campos destinados a las salidas correspondientes a cada condición. El dimensionamiento y la organización de la memoria dependen directamente de la cantidad de estados y de la suma de las longitudes de estos campos lógicos, logrando una reducción significativa en el número de localidades de memoria requeridas en comparación con otros métodos.
 
 \section*{Desarrollo}
 
@@ -43,7 +39,7 @@ Familiarizar al alumno en el conocimiento de construcción de máquinas de estad
     \centering
     \includegraphics[width=0.7\textwidth]{firmado.jpeg}
     \caption{Carta ASM firmada por la profesora.}
-    \label{fig:carta_asm_10_limpia}
+    \label{fig:carta_asm_10_limpia_firmada}
 \end{figure}
 
 \begin{figure}[H]
@@ -111,19 +107,17 @@ Familiarizar al alumno en el conocimiento de construcción de máquinas de estad
     \label{fig:carta_asm_10_limpia}
 \end{figure}
 
-
-
-\subsubsection*{2. Encuentre el tamaño de la memoria necesaria y el contenido de memoria utilizando el direccionamiento entrada-estado. Recuerde que antes de construir la tabla se debe asignar a cada estado y entrada de la carta ASM una representación binaria. Así mismo, recuerde que para cada estado es necesario considerar el llenado de todos los estados que se puedan representar con los bits asignados para la representación de los estados.}
+\subsubsection*{2. Encuentre el tamaño de la memoria necesaria y el contenido de memoria utilizando el direccionamiento entrada-estado.}
 
 \subsection*{Cálculo del tamaño de memoria}
 
-Cabe tener en cuenta que para implemntar salidas condicionales es necesario modificar el diagrama de bloques del direccionamiento entrada-estado.
+Cabe tener en cuenta que para implementar salidas condicionales es necesario modificar el diagrama de bloques del direccionamiento entrada-estado.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{diagramaEntradaEstadoModificado.png}
-    \caption{Carta ASM firmada por la profesora.}
-    \label{fig:carta_asm_10_limpia}
+    \caption{Esquema del Direccionamiento Entrada-Estado Modificado.}
+    \label{fig:diagrama_modificado}
 \end{figure}
 
 Para implementar la carta ASM mediante el direccionamiento entrada-estado modificado, la dirección de la memoria se forma únicamente con el estado presente. La palabra almacenada contiene el bit de prueba, los estados siguientes y las salidas correspondientes a la evaluación de la entrada.
@@ -170,15 +164,16 @@ Por lo tanto, el tamaño de memoria necesario es:
 
 \subsection*{Contenido de la memoria}
 
-El contenido de la memoria está formado por las 16 combinaciones posibles del estado presente. A continuación se presenta la tabla de verdad completa, donde para cada estado se define qué entrada evaluar y cuáles son las rutas de liga y salida. Los estados no utilizados (del 1010 al 1111) se llenan con ceros para mantener la integridad del sistema.
+El contenido de la memoria está formado por las 16 combinaciones posibles del estado presente. Al aplicar el concepto de \textbf{lógica mixta} (donde $S_1$ y $S_0$ encienden con \texttt{1}, mientras que $\overline{U_1}$ y $\overline{U_0}$ encienden con \texttt{0}), se definió que el estado inactivo base (nada encendido) corresponde al vector \texttt{0011}. 
 
+A continuación, se presenta la tabla de verdad completa (desplegada en 160 filas operativas), donde para cada estado se define qué ocurre con las rutas de liga y salidas bajo todas las variaciones de las entradas físicas.
 
 \begingroup
 \renewcommand{\arraystretch}{0.92}
 \setlength{\tabcolsep}{2pt}
 \tiny
 \begin{longtable}{|>{\centering\arraybackslash}p{0.045\textwidth}|>{\centering\arraybackslash}p{0.045\textwidth}|>{\centering\arraybackslash}p{0.045\textwidth}|>{\centering\arraybackslash}p{0.045\textwidth}|*{12}{>{\centering\arraybackslash}p{0.055\textwidth}|}}
-\caption{Tabla completa de transiciones y salidas de la máquina ASM.}
+\caption{Tabla completa de transiciones y salidas de la máquina ASM (Lógica Mixta).}
 \label{tab:tabla_transiciones_estados_salidas_4}\\
 \hline
 \rowcolor{black!80}
@@ -220,14 +215,16 @@ El contenido de la memoria está formado por las 16 combinaciones posibles del e
 \endfoot
 \hline
 \endlastfoot
-0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
-0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
-0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
-0 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
-0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
-0 & 0 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
-0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
-0 & 0 & 0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+
+% ESTADO 0000: Evalúa W
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
+0 & 0 & 0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 0 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
@@ -237,6 +234,8 @@ El contenido de la memoria está formado por las 16 combinaciones posibles del e
 0 & 0 & 0 & 0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 0 & 0 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 \hline
+
+% ESTADO 0001: Evalúa Y
 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
 0 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
@@ -254,6 +253,8 @@ El contenido de la memoria está formado por las 16 combinaciones posibles del e
 0 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
 0 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
 \hline
+
+% ESTADO 0010: Incondicional
 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
 0 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
 0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
@@ -271,6 +272,8 @@ El contenido de la memoria está formado por las 16 combinaciones posibles del e
 0 & 0 & 1 & 0 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
 0 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
 \hline
+
+% ESTADO 0011: Evalúa Z
 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 0 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
 0 & 0 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
@@ -288,6 +291,8 @@ El contenido de la memoria está formado por las 16 combinaciones posibles del e
 0 & 0 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 \\
 \hline
+
+% ESTADO 0100: Incondicional
 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
 0 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
 0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
@@ -305,23 +310,27 @@ El contenido de la memoria está formado por las 16 combinaciones posibles del e
 0 & 1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
 \hline
-0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
-0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
+
+% ESTADO 0101: Incondicional
+0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 1 & 0 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
+0 & 1 & 0 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 \\
 \hline
+
+% ESTADO 0110: Incondicional
 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 0 & 1 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 0 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
@@ -339,6 +348,8 @@ El contenido de la memoria está formado por las 16 combinaciones posibles del e
 0 & 1 & 1 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 0 & 1 & 1 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 \hline
+
+% ESTADO 0111: Incondicional
 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 0 & 1 & 1 & 1 & 0 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 0 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
@@ -356,6 +367,8 @@ El contenido de la memoria está formado por las 16 combinaciones posibles del e
 0 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 0 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0 & 1 & 0 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 \hline
+
+% ESTADO 1000: Incondicional
 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 1 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 1 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
@@ -373,6 +386,8 @@ El contenido de la memoria está formado por las 16 combinaciones posibles del e
 1 & 0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 1 & 0 & 0 & 0 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 \\
 \hline
+
+% ESTADO 1001: Evalúa X
 1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
 1 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
 1 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 \\
@@ -491,44 +506,44 @@ architecture Behavioral of memory is
 
 	signal internal_mem : mem := (
 
-		-- ESTADO 0000: Evalúa 'w' (00).
-		-- Falso: S1S0(1100), Liga 0000.  Verdadero: Nada(0000), Liga 1001.
-		0 => B"00_0000_1001_1100_0000",
+		-- ESTADO 0000: Evalúa 'w' (00). Base: Nada (0011)
+		-- Falso: S1, S0 ON (1111), Liga 0000.  Verdadero: Nada ON (0011), Liga 1001.
+		0 => B"00_0000_1001_1111_0011",
 
-		-- ESTADO 0001: Salida base U1'(0010). Evalúa 'y' (10).
-		-- Falso: U1'U0'(0011) | U1'(0010) = 0011, Liga 0111.
-		-- Verdadero: S1S0(1100) | U1'(0010) = 1110, Liga 0011.
-		1 => B"10_0111_0011_0011_1110",
+		-- ESTADO 0001: Salida base U1' ON (0001). Evalúa 'y' (10).
+		-- Falso: U1', U0' ON (0000), Liga 0111.
+		-- Verdadero: Base + S1, S0 ON (1101), Liga 0011.
+		1 => B"10_0111_0011_0000_1101",
 
-		-- ESTADO 0010: Incondicional. Salida U0'(0001). Liga directa a 1000.
-		2 => B"00_1000_1000_0001_0001",
+		-- ESTADO 0010: Incondicional. Salida U0' ON (0010). Liga directa a 1000.
+		2 => B"00_1000_1000_0010_0010",
 
-		-- ESTADO 0011: Evalúa 'z' (11).
-		-- Falso: S0(0100), Liga 0110. Verdadero: U0'(0001), Liga 0101.
-		3 => B"11_0110_0101_0100_0001",
+		-- ESTADO 0011: Evalúa 'z' (11). Base: Nada (0011)
+		-- Falso: S0 ON (0111), Liga 0110. Verdadero: U0' ON (0010), Liga 0101.
+		3 => B"11_0110_0101_0111_0010",
 
-		-- ESTADO 0100: Incondicional. Salida U1'U0'(0011). Liga directa a 0011.
-		4 => B"00_0011_0011_0011_0011",
+		-- ESTADO 0100: Incondicional. Salida U1', U0' ON (0000). Liga directa a 0011.
+		4 => B"00_0011_0011_0000_0000",
 
-		-- ESTADO 0101: Incondicional. Salida S1, S0, U1' (1110). Liga directa a 1000.
-		5 => B"00_1000_1000_1110_1110",
+		-- ESTADO 0101: Incondicional. Salida S1, S0, U1' ON (1101). Liga directa a 1000.
+		5 => B"00_1000_1000_1101_1101",
 
-		-- ESTADO 0110: Incondicional. Salida S1(1000). Liga directa a 0000.
-		6 => B"00_0000_0000_1000_1000",
+		-- ESTADO 0110: Incondicional. Salida S1 ON (1011). Liga directa a 0000.
+		6 => B"00_0000_0000_1011_1011",
 
-		-- ESTADO 0111: Incondicional. Salida S1S0(1100). Liga directa a 0100.
-		7 => B"00_0100_0100_1100_1100",
+		-- ESTADO 0111: Incondicional. Salida S1, S0 ON (1111). Liga directa a 0100.
+		7 => B"00_0100_0100_1111_1111",
 
-		-- ESTADO 1000: Incondicional. Salida S0(0100). Liga directa a 0000.
-		8 => B"00_0000_0000_0100_0100",
+		-- ESTADO 1000: Incondicional. Salida S0 ON (0111). Liga directa a 0000.
+		8 => B"00_0000_0000_0111_0111",
 
-		-- ESTADO 1001: Salida base U1'U0'(0011). Evalúa 'x' (01).
-		-- Falso: S0(0100) | U1'U0'(0011) = 0111, Liga 0001.
-		-- Verdadero: S1(1000) | U1'U0'(0011) = 1011, Liga 0010.
-		9 => B"01_0001_0010_0111_1011",
+		-- ESTADO 1001: Salida base U1', U0' ON (0000). Evalúa 'x' (01).
+		-- Falso: Base + S0 ON (0100), Liga 0001.
+		-- Verdadero: Base + S1 ON (1000), Liga 0010.
+		9 => B"01_0001_0010_0100_1000",
 
-		-- ESTADOS SIN USO (10 al 15)
-		others => B"00_0000_0000_0000_0000"
+		-- ESTADOS SIN USO (10 al 15): Llenos con el estado de "Apagado" para todos los LEDs
+		others => B"00_0000_0000_0011_0011"
 	);
 
 begin
@@ -663,7 +678,172 @@ end Behavioral;
 
 \subsubsection*{Simulación 1}
 
+Esta primera simulación se realizó con las entradas \(\texttt{W=0,X=0, Y=1, Z=1}\) como valor inicial. Y se modificaron las entradas para visualizar el ciclo más largo de la carta ASM, las entradas en cuestión son \texttt{W=1,X=0, Y=0, Z=0}. La secuencia de estados y salidas es la siguiente:
 
+\begin{enumerate}
+    \item[\textcolor{red}{sec-1:}] Estado: \texttt{0000} \(\rightarrow\) Salida: \texttt{1111} \(\rightarrow\) Estado siguiente: \texttt{0000} \(\rightarrow\)
+    \item[\textcolor{red}{sec-2:}] Estado: \texttt{0000} \(\rightarrow\) Salida: \texttt{0011} \(\rightarrow\) Estado siguiente: \texttt{1001} \(\rightarrow\)
+    \item[\textcolor{red}{sec-3:}] Estado: \texttt{1001} \(\rightarrow\) Salida: \texttt{0100} \(\rightarrow\) Estado siguiente: \texttt{0001} \(\rightarrow\)
+    \item[\textcolor{red}{sec-4:}] Estado: \texttt{0001} \(\rightarrow\) Salida: \texttt{0000} \(\rightarrow\) Estado siguiente: \texttt{0111} \(\rightarrow\)
+    \item[\textcolor{red}{sec-5:}] Estado: \texttt{0111} \(\rightarrow\) Salida: \texttt{1111} \(\rightarrow\) Estado siguiente: \texttt{0100} \(\rightarrow\)
+    \item[\textcolor{red}{sec-6:}] Estado: \texttt{0100} \(\rightarrow\) Salida: \texttt{0000} \(\rightarrow\) Estado siguiente: \texttt{0011} \(\rightarrow\)
+    \item[\textcolor{red}{sec-7:}] Estado: \texttt{0011} \(\rightarrow\) Salida: \texttt{0111} \(\rightarrow\) Estado siguiente: \texttt{0110} \(\rightarrow\)
+    \item[\textcolor{red}{sec-8:}] Estado: \texttt{0110} \(\rightarrow\) Salida: \texttt{1011} \(\rightarrow\) Estado siguiente: \texttt{0000} \(\rightarrow\)
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        % Nodo de la imagen base
+        \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+            {\includegraphics[width=\textwidth]{simulacion1.png}};
+
+        % Scope con coordenadas relativas (0 a 1) para un ajuste milimétrico e independiente del tamaño de página.
+        \begin{scope}[x={(tarjeta.south east)},y={(tarjeta.north west)}]
+
+            % Definimos la altura de las cajas rojas para cubrir todas las señales
+            \def\ybot{0.00}
+            \def\ytop{0.90}
+
+            % Trazos de los recuadros rojos calculados a partir de los tiempos de simulación (ns)
+            \draw[red, thick] (0.1078, \ytop) rectangle (0.1788, \ybot); % sec-1  [0ns - 100ns]
+            \draw[red, thick] (0.1788, \ytop) rectangle (0.2139, \ybot); % sec-2  [100ns - 120ns]
+            \draw[red, thick] (0.2139, \ytop) rectangle (0.2849, \ybot); % sec-3  [120ns - 200ns]
+            \draw[red, thick] (0.2849, \ytop) rectangle (0.3559, \ybot); % sec-4  [200ns - 280ns]
+            \draw[red, thick] (0.3559, \ytop) rectangle (0.4269, \ybot); % sec-5  [280ns - 360ns]
+            \draw[red, thick] (0.4269, \ytop) rectangle (0.4979, \ybot); % sec-1b [360ns - 440ns]
+            \draw[red, thick] (0.4979, \ytop) rectangle (0.5689, \ybot); % sec-2b [440ns - 520ns]
+            \draw[red, thick] (0.5689, \ytop) rectangle (0.6399, \ybot); % sec-3b [520ns - 600ns]
+
+            % Posición vertical para las etiquetas de texto
+            \def\ytext{0.03}
+            
+            % Etiquetas centradas en el medio de cada recuadro (calculadas automáticamente)
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.1593, \ytext) {sec-1};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.2061, \ytext) {sec-2};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.2451, \ytext) {sec-3};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.3075, \ytext) {sec-4};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.3699, \ytext) {sec-5};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.4323, \ytext) {sec-6};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.4947, \ytext) {sec-7};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.5571, \ytext) {sec-8};
+
+        \end{scope}
+    \end{tikzpicture}
+    \caption{Simulación 1 de la máquina de estados en ModelSim, segmentada por transiciones de estado.}
+    \label{fig:simulacion_sec_4}
+\end{figure}
+
+Se observa que la máquina de estados sigue correctamente la carta ASM, conmutando entre los estados y salidas esperadas según las condiciones de entrada.
+
+\subsubsection*{Simulación 2}
+
+Para esta segunda simulación se parte de igual forma desde las entradas iniciales \(\texttt{W=0,X=0, Y=0, Z=0}\) y se modifican las entradas a \texttt{W=1,X=0, Y=1, Z=1} para visualizar la segunda secuencia más larga de la carta ASM. La secuencia de estados y salidas es la siguiente:
+
+\begin{enumerate}
+    \item[\textcolor{red}{sec-1:}] Estado: \texttt{0000} \(\rightarrow\) Salida: \texttt{1111} \(\rightarrow\) Estado siguiente: \texttt{0000} \(\rightarrow\)
+    \item[\textcolor{red}{sec-2:}] Estado: \texttt{0000} \(\rightarrow\) Salida: \texttt{0011} \(\rightarrow\) Estado siguiente: \texttt{1001} \(\rightarrow\)
+    \item[\textcolor{red}{sec-3:}] Estado: \texttt{1001} \(\rightarrow\) Salida: \texttt{0100} \(\rightarrow\) Estado siguiente: \texttt{0001} \(\rightarrow\)
+    \item[\textcolor{red}{sec-4:}] Estado: \texttt{0001} \(\rightarrow\) Salida: \texttt{1101} \(\rightarrow\) Estado siguiente: \texttt{0011} \(\rightarrow\)
+    \item[\textcolor{red}{sec-5:}] Estado: \texttt{0011} \(\rightarrow\) Salida: \texttt{0100} \(\rightarrow\) Estado siguiente: \texttt{0101} \(\rightarrow\)
+    \item[\textcolor{red}{sec-6:}] Estado: \texttt{0101} \(\rightarrow\) Salida: \texttt{1101} \(\rightarrow\) Estado siguiente: \texttt{1000} \(\rightarrow\)
+    \item[\textcolor{red}{sec-7:}] Estado: \texttt{1000} \(\rightarrow\) Salida: \texttt{0111} \(\rightarrow\) Estado siguiente: \texttt{0000} \(\rightarrow\)
+\end{enumerate}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        % Nodo de la imagen base
+        \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+            {\includegraphics[width=\textwidth]{simulacion2.png}};
+
+        % Scope con coordenadas relativas (0 a 1) para un ajuste milimétrico e independiente del tamaño de página.
+        \begin{scope}[x={(tarjeta.south east)},y={(tarjeta.north west)}]
+
+            % Definimos la altura de las cajas rojas para cubrir todas las señales
+            \def\ybot{0.00}
+            \def\ytop{0.90}
+
+            % Trazos de los recuadros rojos calculados a partir de los tiempos de simulación (ns)
+            \draw[blue, thick] (0.1078, \ytop) rectangle (0.1788, \ybot); % sec-1  [0ns - 100ns]
+            \draw[blue, thick] (0.1788, \ytop) rectangle (0.2139, \ybot); % sec-2  [100ns - 120ns]
+            \draw[blue, thick] (0.2139, \ytop) rectangle (0.2849, \ybot); % sec-3  [120ns - 200ns]
+            \draw[blue, thick] (0.2849, \ytop) rectangle (0.3559, \ybot); % sec-4  [200ns - 280ns]
+            \draw[blue, thick] (0.3559, \ytop) rectangle (0.4269, \ybot); % sec-5  [280ns - 360ns]
+            \draw[blue, thick] (0.4269, \ytop) rectangle (0.4979, \ybot); % sec-1b [360ns - 440ns]
+            \draw[blue, thick] (0.4979, \ytop) rectangle (0.5689, \ybot); % sec-2b [440ns - 520ns]
+
+            % Posición vertical para las etiquetas de texto
+            \def\ytext{0.03}
+            
+            % Etiquetas centradas en el medio de cada recuadro (calculadas automáticamente)
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.1593, \ytext) {sec-1};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.2061, \ytext) {sec-2};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.2451, \ytext) {sec-3};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.3075, \ytext) {sec-4};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.3699, \ytext) {sec-5};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.4323, \ytext) {sec-6};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.4947, \ytext) {sec-7};
+
+        \end{scope}
+    \end{tikzpicture}
+    \caption{Simulación 1 de la máquina de estados en ModelSim, segmentada por transiciones de estado.}
+    \label{fig:simulacion_sec_4}
+\end{figure}
+
+En este camnio exploramos a su vez dos posibles ciclos tomando como \texttt{Y = 1, Z = 1}, de tal forma que la máquina nos guíe a un camino diferente al que vimos en la primera simulación. En esta caso llevandonos hacia el segundo camino que nos lleva al estado inicial \texttt{0000}.
+
+\subsubsection*{Simulacion 3}
+
+Para esta tercera y ultima simulación exploramos el ultimo y más corto ciclo de la carta ASM, partiendo de las entradas iniciales \(\texttt{W=0,X=0, Y=0, Z=0}\) y modificando las entradas a \(\texttt{W=1,X=1, Y=1, Z=1}\). La secuencia de estados y salidas es la siguiente:
+
+\begin{enumerate}
+    \item[\textcolor{red}{sec-1:}] Estado: \texttt{0000} \(\rightarrow\) Salida: \texttt{1111} \(\rightarrow\) Estado siguiente: \texttt{0000} \(\rightarrow\)
+    \item[\textcolor{red}{sec-2:}] Estado: \texttt{0000} \(\rightarrow\) Salida: \texttt{0011} \(\rightarrow\) Estado siguiente: \texttt{1001} \(\rightarrow\)
+    \item[\textcolor{red}{sec-3:}] Estado: \texttt{1001} \(\rightarrow\) Salida: \texttt{1000} \(\rightarrow\) Estado siguiente: \texttt{0010} \(\rightarrow\)
+    \item[\textcolor{red}{sec-4:}] Estado: \texttt{0010} \(\rightarrow\) Salida: \texttt{0010} \(\rightarrow\) Estado siguiente: \texttt{1000} \(\rightarrow\)
+    \item[\textcolor{red}{sec-5:}] Estado: \texttt{1000} \(\rightarrow\) Salida: \texttt{0111} \(\rightarrow\) Estado siguiente: \texttt{0000} \(\rightarrow\)
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        % Nodo de la imagen base
+        \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+            {\includegraphics[width=\textwidth]{simulacion3.png}};
+
+        % Scope con coordenadas relativas (0 a 1) para un ajuste milimétrico e independiente del tamaño de página.
+        \begin{scope}[x={(tarjeta.south east)},y={(tarjeta.north west)}]
+
+            % Definimos la altura de las cajas rojas para cubrir todas las señales
+            \def\ybot{0.00}
+            \def\ytop{0.90}
+
+            % Trazos de los recuadros rojos calculados a partir de los tiempos de simulación (ns)
+            \draw[ForestGreen, thick] (0.1078, \ytop) rectangle (0.1788, \ybot); % sec-1  [0ns - 100ns]
+            \draw[ForestGreen, thick] (0.1788, \ytop) rectangle (0.2139, \ybot); % sec-2  [100ns - 120ns]
+            \draw[ForestGreen, thick] (0.2139, \ytop) rectangle (0.2849, \ybot); % sec-3  [120ns - 200ns]
+            \draw[ForestGreen, thick] (0.2849, \ytop) rectangle (0.3559, \ybot); % sec-4  [200ns - 280ns]
+            \draw[ForestGreen, thick] (0.3559, \ytop) rectangle (0.4269, \ybot); % sec-5  [280ns - 360ns]
+
+            % Posición vertical para las etiquetas de texto
+            \def\ytext{0.03}
+            
+            % Etiquetas centradas en el medio de cada recuadro (calculadas automáticamente)
+            \node[text=ForestGreen, font=\fontsize{5}{0}\selectfont, align=center] at (0.1593, \ytext) {sec-1};
+            \node[text=ForestGreen, font=\fontsize{5}{0}\selectfont, align=center] at (0.2061, \ytext) {sec-2};
+            \node[text=ForestGreen, font=\fontsize{5}{0}\selectfont, align=center] at (0.2451, \ytext) {sec-3};
+            \node[text=ForestGreen, font=\fontsize{5}{0}\selectfont, align=center] at (0.3075, \ytext) {sec-4};
+            \node[text=ForestGreen, font=\fontsize{5}{0}\selectfont, align=center] at (0.3699, \ytext) {sec-5};
+
+        \end{scope}
+    \end{tikzpicture}
+    \caption{Simulación 1 de la máquina de estados en ModelSim, segmentada por transiciones de estado.}
+    \label{fig:simulacion_sec_4}
+\end{figure}
+
+Notar que las entradas \texttt{Y=1} y \texttt{Z=1} no afectan el flujo de la máquina, ya que este ciclo depende del valor de la entrada \texttt{X} y de la evaluación de la entrada \texttt{W}.
 
 \section*{Conclusiones}
 
