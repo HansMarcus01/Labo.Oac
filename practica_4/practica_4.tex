@@ -16,11 +16,11 @@ Familiarizar al alumno en el conocimiento de construcción de máquinas de estad
 
 \section*{Introducción}
 
-En el ámbito del diseño digital, el método de direccionamiento entrada-estado modificado permite implementar cartas ASM almacenando el comportamiento lógico en una memoria ROM y delegando la evaluación de las condiciones a un arreglo de multiplexores externos. A diferencia del direccionamiento entrada-estado clásico, la dirección de memoria exacta a la que debe acceder el sistema en cada pulso de reloj se forma únicamente con los bits del estado presente de la máquina.
+La síntesis de controladores digitales avanzados a menudo requiere optimizar el uso de recursos de memoria y hardware en dispositivos lógicos programables. Una de las técnicas más eficientes para este fin es el paradigma de direccionamiento estado-entrada modificado, el cual reestructura la forma en que un autómata finito interpreta sus trayectorias de transición y sus líneas de control. 
 
-La palabra de memoria se divide en campos específicos: una porción de prueba que indica al selector de entradas qué variable evaluar, un par de campos de "liga" que guardan los posibles estados siguientes (falso o verdadero), y un par de campos destinados a las salidas correspondientes a cada condición. El dimensionamiento y la organización de la memoria dependen directamente de la cantidad de estados y de la suma de las longitudes de estos campos lógicos, logrando una reducción significativa en el número de localidades de memoria requeridas en comparación con otros métodos.
+A diferencia de los esquemas convencionales, esta metodología emplea exclusivamente los bits del estado actual como vector de direccionamiento directo hacia una memoria ROM de almacenamiento estático. Para resolver las bifurcaciones de la carta ASM sin incrementar innecesariamente las localidades de la memoria, se integra un arreglo de multiplexores externos que evalúan de manera dinámica las variables de entrada del sistema.
 
-Adicionalmente, para cumplir con los requerimientos de diseño de sistemas complejos, esta arquitectura se adapta para soportar \textbf{salidas condicionales}, permitiendo que el estado de las salidas no solo dependa del estado presente, sino también de la evaluación directa de las variables de entrada mediante lógica combinacional externa, optimizando el control de los actuadores o indicadores del sistema.
+Asimismo, la arquitectura se diseña de forma modular dividiendo la palabra de control en campos específicos de prueba, ligas y salidas. Esta organización resulta clave para incorporar salidas condicionales, permitiendo que las señales de control no dependan exclusivamente del registro activo, sino también de la evaluación instantánea de las condiciones externas, logrando así un balance superior entre flexibilidad de diseño y ahorro de espacio en la FPGA.
 
 \section*{Desarrollo}
 
