@@ -1,0 +1,188 @@
+\documentclass[12pt, letterpaper]{article}
+
+\input{template/preamble.tex}
+
+\input{template/listings_config.tex}
+
+\usetikzlibrary{fit,tikzmark}
+
+\begin{document}
+
+\input{template/title_page.tex}
+
+\section*{Objetivo}
+
+Familiarizar al alumno en el conocimiento de construcción de máquinas de estados usando direccionamiento de memorias con el método de direccionamiento implícito.
+
+\section*{Introducción}
+
+
+
+\section*{Desarrollo}
+
+\subsection*{1. Diseñe una carta ASM con las siguientes características:}
+
+\begin{itemize}
+    \item Estados: 6 hasta 16
+    \item Entradas: 3
+    \item Salidas: 4
+    \begin{itemize}
+        \item 2 con lógica estándar
+        \item 2 con lógica negada
+    \end{itemize}
+    \item Colocar al menos 3 salidas condiciones si se puede.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{firmado.jpeg}
+    \caption{Carta ASM firmada por la profesora.}
+    \label{fig:carta_asm_10_limpia_firmada}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+    \begin{tikzpicture}[
+        state/.style={draw, rounded corners=2pt, fill=blue!10, minimum width=2.8cm, minimum height=1.2cm, align=center, font=\small},
+        decision/.style={draw, diamond, aspect=2.1, fill=yellow!20, minimum width=1cm, minimum height=1cm, align=center, font=\small},
+        output/.style={draw, rounded corners=15pt, fill=gray!15, minimum width=2cm, minimum height=1cm, align=center, font=\small},
+        >={Stealth[length=2mm,width=2mm]}
+    ]
+        \node[state, label={[anchor=south east, font=\small]north east:{000}}] (E0) at (0,0) {$\overline{U_1}\overline{U_0}$};
+        \node[decision] (X0) at (0,-2) {\texttt{x}};
+        \node[output] (C0) at (-3,-2) {$S_1S_0$};
+        \node[state, label={[anchor=south east, font=\small]north east:{001}}] (E1) at (4,-2) {$S_0$};
+        \node[state, label={[anchor=south east, font=\small]north east:{010}}] (E2) at (4,-5) {};
+        \node[decision] (X1) at (4,-7) {\texttt{y}};
+        \node[output] (C1) at (4,-9) {$S_0\overline{U_0}$};
+        \node[output] (C2) at (1,-7) {$S_1\overline{U_1}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{011}}] (E3) at (4,-11) {};
+        \node[state, label={[anchor=south east, font=\small]north east:{100}}] (E4) at (4,-13) {$S_1S_0\overline{U_1}\overline{U_0}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{110}}] (E6) at (-1,-9) {};
+        \node[decision] (Z1) at (-1,-11) {\texttt{z}};
+        \node[output] (C3) at (-3.5,-11) {$S_1$};
+        \node[state, label={[anchor=south east, font=\small]north east:{111}}] (E7) at (-5,-14) {$\overline{U_1}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{101}}] (E5) at (-1,-15) {$S_1\overline{U_0}$};
+
+        \draw[->] (E0) -- (X0);
+        \draw[] (X0) -- node[above, font=\scriptsize] {0} (C0);
+        \draw[->] (C0) |- (E0);
+        \draw[->] (X0) -- node[above, font=\scriptsize] {1} (E1);
+        \draw[->] (E1) -- (E2);
+        \draw[->] (E2) -- (X1);
+        \draw[] (X1) -- node[right, font=\scriptsize] {1} (C1);
+        \draw[] (X1) -- node[above, font=\scriptsize] {0} (C2);
+        \draw[->] (C1) -- (E3);
+        \draw[->] (E3) -- (E4);
+        \draw[->] (C2) -| (E6);
+        \draw[->] (E6) -- (Z1);
+        \draw[] (Z1) -- node[above, font=\scriptsize] {0} (C3);
+        \draw[->] (Z1) -- node[right, font=\scriptsize] {1} (E5);
+        \draw[->] (C3) -| (E7);
+        \draw[->] (E7.west) -- ++(-1.5,0) |- (E0.north west);
+        \draw[->] (E5.east) -- ++(+6,0) |- (E1);
+        % \draw[->] (E9.east) -- ++(1,0) |- (E1.east);
+    \end{tikzpicture}
+    \end{adjustbox}
+    \caption{Carta ASM de 8 estados con direccionamiento Implícito.}
+    \label{fig:carta_asm_10_limpia}
+\end{figure}
+
+\subsubsection*{2. Encuentre el tamaño de la memoria necesaria y el contenido de memoria utilizando el direccionamiento entrada-estado.}
+
+Encuentre el tamaño de la memoria necesaria y el contenido de memoria utilizando el direccionamiento por trayectoria. Recuerde que antes de construir la tabla se debe asignar a cada estado de la carta ASM una representación binaria. Así mismo, recuerde que para cada estado es necesario considerar todas las posibles combinaciones de las variables de entrada, aun cuando algunas de ellas no se utilicen en determinado estado.
+
+\subsection*{Cálculo del tamaño de memoria}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{diagramaImplicitoModificado.png}
+    \caption{Esquema del Direccionamiento Implícito.}
+    \label{fig:diagrama_modificado}
+\end{figure}
+
+\textbf{Tamaño de memoria}
+
+\[
+2^n \cdot m
+\]
+
+En donde:
+\begin{itemize}
+    \item $n$ = número de bits del estado presente.
+    \item $m$ = prueba + liga falsa + liga verdadera + salida falsa + salida verdadera.
+\end{itemize}
+
+En esta máquina se tienen 10 estados. Por lo tanto, se necesitan 4 bits para representarlos, ya que $2^4=16$ combinaciones posibles.
+
+\[
+n = 4\text{ bits}
+\]
+
+La dirección de memoria tendrá 4 bits y podrá seleccionar 16 localidades. Para calcular la longitud de la palabra ($m$), se suman los bits de los campos requeridos por la arquitectura:
+
+\begin{itemize}
+    \item \textbf{Prueba:} 2 bits (para seleccionar entre las entradas $w=00, x=01, y=10, z=11$).
+    \item \textbf{Liga Falsa:} 4 bits (estado siguiente si la evaluación es 0).
+    \item \textbf{Liga Verdadera:} 4 bits (estado siguiente si la evaluación es 1).
+    \item \textbf{Salida Falsa:} 4 bits (estado de las salidas $S_1, S_0, \overline{U_1}, \overline{U_0}$ si la evaluación es 0).
+    \item \textbf{Salida Verdadera:} 4 bits (estado de las salidas si la evaluación es 1).
+\end{itemize}
+
+\[
+m = 2 + 4 + 4 + 4 + 4 = 18\text{ bits}
+\]
+
+Por lo tanto, el tamaño de memoria necesario es:
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+\[
+2^4\cdot 18 = 16\cdot 18 = 288\text{ bits}
+\]
+\end{tcolorbox}
+
+\subsection*{Contenido de la memoria}
+
+
+\subsection*{3. Implementación en Quartus del direccionamiento implícito.}
+
+Una vez que haya obtenido el contenido de memoria, implemente el direccionamiento implícito utilizando el software de desarrollo Quartus y escriba el contenido de memoria obtenido.
+
+% \subsubsection*{Divisor de Frecuencia (\texttt{div\_frec.vhd})}
+
+\subsection*{4. Modifique el código de Quartus para que se acepten salidas condicionales.}
+
+\section*{Discusión de Resultados}
+
+\subsection*{5. Simule su diseño para probar su funcionamiento. Recuerden que en sus simulaciones debe aparecer el contenido de la memoria además del estado presente.}
+
+\subsubsection*{Simulación 1}
+
+
+
+\subsubsection*{Simulación 2}
+
+
+\subsubsection*{Simulacion 3}
+
+
+
+\section*{Conclusiones}
+
+\subsection*{Andrea Saldaña Navarrete - 320206384}
+
+
+
+\subsection*{Hansel Yael Tepal Briseño - 320078282}
+
+
+
+\subsection*{Luis Antonio Ugartechea González - 320223822}
+
+
+
+\input{template/biblio.tex}
+
+\end{document}
