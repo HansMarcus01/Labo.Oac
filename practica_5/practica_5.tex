@@ -82,7 +82,8 @@ Familiarizar al alumno en el conocimiento de construcción de máquinas de estad
         \draw[->] (C3) -| (E7);
         \draw[->] (E7.west) -- ++(-1.5,0) |- (E0.north west);
         \draw[->] (E5.east) -- ++(+6,0) |- (E1);
-        % \draw[->] (E9.east) -- ++(1,0) |- (E1.east);
+        \draw[->] (E4) -- ++(-2,0) |- (E5.north east);
+        % \draw[->] (E4) -- (E5);
     \end{tikzpicture}
     \end{adjustbox}
     \caption{Carta ASM de 8 estados con direccionamiento Implícito.}
@@ -144,6 +145,41 @@ Por lo tanto, el tamaño de memoria necesario es:
 \end{tcolorbox}
 
 \subsection*{Contenido de la memoria}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.2}
+\begin{center}
+    \begin{adjustbox}{width=\textwidth}
+    \begin{tabular}{|ccc|cc|c|ccc|cccc|cccc|}
+    \hline
+    \rowcolor{black!80}
+    \multicolumn{3}{|c|}{\textcolor{white}{\textbf{Estado Presente}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{Prueba}}} & \textcolor{white}{\textbf{VF}} & \multicolumn{3}{c|}{\textcolor{white}{\textbf{Liga}}} & \multicolumn{4}{c|}{\textcolor{white}{\textbf{Salidas Carga}}} & \multicolumn{4}{c|}{\textcolor{white}{\textbf{Salidas Inc.}}}\\
+    \hline
+    \rowcolor{black!80}
+    \textcolor{white}{\textbf{$P_2(t)$}} & \textcolor{white}{\textbf{$P_1(t)$}} & \textcolor{white}{\textbf{$P_0(t)$}} & \textcolor{white}{\textbf{$K_1$}} & \textcolor{white}{\textbf{$K_0$}} & &\textcolor{white}{\textbf{$L_2$}} & \textcolor{white}{\textbf{$L_1$}} & \textcolor{white}{\textbf{$L_0$}} & \textcolor{white}{\textbf{$S_1$}} & \textcolor{white}{\textbf{$S_0$}} & \textcolor{white}{\textbf{$\overline{U_1}$}} & \textcolor{white}{\textbf{$\overline{U_0}$}} & \textcolor{white}{\textbf{$S_1$}} & \textcolor{white}{\textbf{$S_0$}} & \textcolor{white}{\textbf{$\overline{U_1}$}} & \textcolor{white}{\textbf{$\overline{U_0}$}} \\
+    \hline
+    0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 \\
+    \hline
+    0 & 0 & 1 & * & * & * & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 \\
+    \hline
+    0 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 \\
+    \hline
+    0 & 1 & 1 & * & * & * & 1 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 \\
+    \hline
+    1 & 0 & 0 & * & * & * & 1 & 0 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 \\
+    \hline
+    1 & 0 & 1 & * & * & * & 0 & 0 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 \\
+    \hline
+    1 & 1 & 0 & 1 & 0 & 1 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 \\
+    \hline
+    1 & 1 & 1 & * & * & * & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 \\
+    \hline
+    \end{tabular}
+    \end{adjustbox}
+\end{center}
+\caption{Tabla de transiciones y salidas de la máquina de estados.}
+\label{tab:tabla_transiciones_estados_salidas_1}
+\end{table}
 
 
 \subsection*{3. Implementación en Quartus del direccionamiento implícito.}
