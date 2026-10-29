@@ -23,7 +23,7 @@ refer to the applicable agreement for further details.
 	(input)
 	(rect -200 24 -184 192)
 	(text "INPUT" (rect 6 125 16 153)(font "Arial" (font_size 6))(vertical))
-	(text "Liga[2..0]" (rect 5 5 16 52)(font "Arial" )(vertical))
+	(text "Liga[2..0]" (rect 5 5 16 51)(font "Arial" )(vertical))
 	(pt 8 168)
 	(drawing
 		(line (pt 4 84)(pt 4 109))
@@ -40,7 +40,7 @@ refer to the applicable agreement for further details.
 	(input)
 	(rect -160 0 -144 168)
 	(text "INPUT" (rect 6 125 16 153)(font "Arial" (font_size 6))(vertical))
-	(text "Carga" (rect 5 5 18 35)(font "Intel Clear" )(vertical))
+	(text "Carga" (rect 5 5 18 34)(font "Intel Clear" )(vertical))
 	(pt 8 168)
 	(drawing
 		(line (pt 4 84)(pt 4 109))
@@ -55,9 +55,9 @@ refer to the applicable agreement for further details.
 )
 (pin
 	(input)
-	(rect 48 160 216 176)
+	(rect -16 128 152 144)
 	(text "INPUT" (rect 125 0 153 10)(font "Arial" (font_size 6)))
-	(text "CLK" (rect 5 0 29 11)(font "Arial" ))
+	(text "CLK" (rect 5 0 28 11)(font "Arial" ))
 	(pt 168 8)
 	(drawing
 		(line (pt 84 12)(pt 109 12))
@@ -71,9 +71,9 @@ refer to the applicable agreement for further details.
 )
 (pin
 	(input)
-	(rect 48 176 216 192)
+	(rect -40 160 128 176)
 	(text "INPUT" (rect 125 0 153 10)(font "Arial" (font_size 6)))
-	(text "RESET" (rect 5 0 39 13)(font "Intel Clear" ))
+	(text "RESET" (rect 5 0 38 13)(font "Intel Clear" ))
 	(pt 168 8)
 	(drawing
 		(line (pt 84 12)(pt 109 12))
@@ -196,6 +196,31 @@ refer to the applicable agreement for further details.
 		(rectangle (rect 16 16 144 96))
 	)
 )
+(symbol
+	(rect 160 160 208 192)
+	(text "NOT" (rect 1 0 21 10)(font "Arial" (font_size 6)))
+	(text "inst41" (rect 3 21 32 32)(font "Arial" ))
+	(port
+		(pt 0 16)
+		(input)
+		(text "IN" (rect 2 7 16 18)(font "Courier New" (bold))(invisible))
+		(text "IN" (rect 2 7 16 18)(font "Courier New" (bold))(invisible))
+		(line (pt 0 16)(pt 13 16))
+	)
+	(port
+		(pt 48 16)
+		(output)
+		(text "OUT" (rect 32 7 52 18)(font "Courier New" (bold))(invisible))
+		(text "OUT" (rect 32 7 52 18)(font "Courier New" (bold))(invisible))
+		(line (pt 39 16)(pt 48 16))
+	)
+	(drawing
+		(line (pt 13 25)(pt 13 7))
+		(line (pt 13 7)(pt 31 16))
+		(line (pt 13 25)(pt 31 16))
+		(circle (rect 31 12 39 20))
+	)
+)
 (connector
 	(pt -192 192)
 	(pt -192 272)
@@ -213,14 +238,6 @@ refer to the applicable agreement for further details.
 (connector
 	(pt -152 240)
 	(pt -24 240)
-)
-(connector
-	(pt 216 168)
-	(pt 248 168)
-)
-(connector
-	(pt 216 184)
-	(pt 248 184)
 )
 (connector
 	(pt 136 240)
@@ -271,5 +288,33 @@ refer to the applicable agreement for further details.
 	(pt 488 120)
 	(pt 488 168)
 	(bus)
+)
+(connector
+	(pt 240 168)
+	(pt 240 136)
+)
+(connector
+	(pt 248 168)
+	(pt 240 168)
+)
+(connector
+	(pt 240 136)
+	(pt 152 136)
+)
+(connector
+	(pt 128 168)
+	(pt 160 168)
+)
+(connector
+	(pt 160 168)
+	(pt 160 176)
+)
+(connector
+	(pt 208 176)
+	(pt 248 176)
+)
+(connector
+	(pt 248 176)
+	(pt 248 184)
 )
 (junction (pt 488 120))
