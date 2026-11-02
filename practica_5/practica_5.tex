@@ -63,7 +63,7 @@ Familiarizar al alumno en el conocimiento de construcción de máquinas de estad
         \node[decision] (Z1) at (-1,-11) {\texttt{z}};
         \node[output] (C3) at (-3.5,-11) {$S_1$};
         \node[state, label={[anchor=south east, font=\small]north east:{111}}] (E7) at (-5,-14) {$\overline{U_1}$};
-        \node[state, label={[anchor=south east, font=\small]north east:{101}}] (E5) at (-1,-15) {$S_1\overline{U_0}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{101}}] (E5) at (-1,-15) {$S_0\overline{U_0}$};
 
         \draw[->] (E0) -- (X0);
         \draw[] (X0) -- node[above, font=\scriptsize] {0} (C0);
@@ -168,7 +168,7 @@ Por lo tanto, el tamaño de memoria necesario es:
     \hline
     1 & 0 & 0 & * & * & * & 1 & 0 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 \\
     \hline
-    1 & 0 & 1 & * & * & * & 0 & 0 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 \\
+    1 & 0 & 1 & * & * & * & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 \\
     \hline
     1 & 1 & 0 & 1 & 0 & 1 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 \\
     \hline
