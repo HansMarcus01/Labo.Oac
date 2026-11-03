@@ -186,9 +186,133 @@ Por lo tanto, el tamaño de memoria necesario es:
 
 Una vez que haya obtenido el contenido de memoria, implemente el direccionamiento implícito utilizando el software de desarrollo Quartus y escriba el contenido de memoria obtenido.
 
-% \subsubsection*{Divisor de Frecuencia (\texttt{div\_frec.vhd})}
+\subsubsection*{Descripción de la implementación}
+
+La implementación se realizó en Quartus Prime utilizando el archivo
+\texttt{practica\_5.bdf} como entidad de nivel superior. El diseño se organizó
+en bloques VHDL independientes: un divisor de frecuencia, un registro de
+estado, una memoria ROM, un divisor de datos, un multiplexor de entradas, un
+incrementador y dos multiplexores de selección: uno para la siguiente liga y
+otro para las salidas.
+
+El registro de estado utiliza tres bits, por lo que puede representar los ocho
+estados de la máquina. Su salida se conecta a la entrada de dirección de la
+memoria ROM. Para cada estado, la memoria entrega una palabra de 14 bits con
+el formato
+
+\[
+\underbrace{\text{Prueba}}_{2\ \text{bits}}\,
+\underbrace{\text{VF}}_{1\ \text{bit}}\,
+\underbrace{\text{Liga}}_{3\ \text{bits}}\,
+\underbrace{\text{Salidas Inc.}}_{4\ \text{bits}}\,
+\underbrace{\text{Salidas Carga}}_{4\ \text{bits}}.
+\]
+
+El bloque \texttt{divisor\_datos} separa esta palabra en sus campos. El
+multiplexor \texttt{mux5} selecciona la entrada física que corresponde al
+campo \texttt{Prueba}; las entradas $X$, $Y$ y $Z$ corresponden a las
+variables externas y $W$ se conecta a un nivel lógico alto para representar
+la condición constante. La señal obtenida controla los multiplexores de
+liga y de salida. Finalmente, el incrementador genera el estado siguiente
+secuencial, mientras que \texttt{mux1X2X1\_3} selecciona entre el estado
+incrementado y la liga almacenada en memoria.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{practica_5_quartus.png}
+    \caption{Esquemático de la implementación completa en Quartus.}
+    \label{fig:practica_5_quartus}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{contaor_quartus.png}
+    \caption{Esquemático del contador y registro utilizados para recorrer los estados.}
+    \label{fig:contador_quartus}
+\end{figure}
+
+\subsubsection*{Código de los módulos}
+
+El divisor de frecuencia reduce la frecuencia del reloj de la tarjeta para
+que los cambios de estado puedan observarse durante la prueba física.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Divisor de frecuencia utilizado en Quartus.},
+    label={lst:p5_div_frec}
+]{source/div_frec.vhd}
+
+El registro conserva el estado presente y lo actualiza en cada flanco de
+subida del reloj dividido. El reinicio activo en bajo devuelve la máquina al
+estado \texttt{000}.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Registro de estado de tres bits.},
+    label={lst:p5_register3}
+]{source/register3.vhd}
+
+La memoria ROM contiene las ocho palabras de control obtenidas a partir de la
+tabla de estados. La dirección corresponde directamente al estado presente.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Memoria ROM con el contenido de la máquina.},
+    label={lst:p5_memory}
+]{source/memory.vhd}
+
+El divisor de datos desempaqueta la palabra de 14 bits para alimentar los
+bloques de selección.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Separación de los campos de la palabra de memoria.},
+    label={lst:p5_divisor_datos}
+]{source/divisor_datos.vhd}
+
+El multiplexor de entradas selecciona la condición que debe evaluarse según
+el campo \texttt{Prueba} almacenado en la ROM.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Multiplexor de selección de entradas.},
+    label={lst:p5_mux5}
+]{source/mux5.vhd}
+
+El incrementador produce el siguiente estado secuencial. El multiplexor de
+tres bits permite seleccionar entre este valor y la liga proporcionada por
+la memoria.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Incrementador del estado.},
+    label={lst:p5_incrementador}
+]{source/incrementador.vhd}
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Multiplexor para seleccionar la siguiente liga.},
+    label={lst:p5_mux1x2x1}
+]{source/mux1X2X1.vhd}
+
+Por último, el multiplexor de cuatro bits selecciona el grupo de salidas
+correspondiente a la condición evaluada, entre las salidas de incremento y
+las salidas de carga.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Multiplexor de las salidas de la máquina.},
+    label={lst:p5_mux1x2x1_3}
+]{source/mux1X2X1_3.vhd}
+
 
 \subsection*{4. Modifique el código de Quartus para que se acepten salidas condicionales.}
+
+\textbf{Nota:} Esta modificación ya fue implementada en el diseño. La palabra
+de memoria incluye las salidas para las condiciones falsa y verdadera, así
+como el bit \texttt{VF}. El bloque \texttt{divisor\_datos} separa estos
+campos y el multiplexor \texttt{mux1X2X1\_3} utiliza \texttt{VF} como selector
+para elegir la salida correspondiente a la condición evaluada.
 
 \section*{Discusión de Resultados}
 
