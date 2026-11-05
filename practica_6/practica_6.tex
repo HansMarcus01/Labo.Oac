@@ -1,0 +1,120 @@
+\documentclass[12pt, letterpaper]{article}
+
+\input{template/preamble.tex}
+
+\input{template/listings_config.tex}
+
+\usetikzlibrary{fit,tikzmark}
+
+\begin{document}
+
+\input{template/title_page.tex}
+
+\section*{Objetivo}
+
+Familiarizar al alumno en el conocimiento del secuenciador básico, el cual es una parte
+fundamental del procesador.
+
+\section*{Introducción}
+
+
+
+\section*{Desarrollo}
+
+\subsection*{1. Diseñe una carta ASM con las siguientes características:}
+
+\begin{itemize}
+    \item Estados: 14 a 16
+    \item Entradas: 2: \texttt{INT} y \texttt{Qaux}
+    \item Salidas: 4
+    \begin{itemize}
+        \item 2 con lógica estándar: $S_1$ y $S_0$
+        \item 2 con lógica negada: $\overline{U_1}$ y $\overline{U_0}$
+    \end{itemize}
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \begin{adjustbox}{width=\textwidth, height=\textheight, keepaspectratio}
+    \begin{tikzpicture}[
+        state/.style={draw, rounded corners=2pt, fill=blue!10, minimum width=2.8cm, minimum height=1.2cm, align=center, font=\small},
+        decision/.style={draw, diamond, aspect=2.1, fill=yellow!20, minimum width=1cm, minimum height=1cm, align=center, font=\small},
+        output/.style={draw, rounded corners=15pt, fill=gray!15, minimum width=2cm, minimum height=1cm, align=center, font=\small},
+        >={Stealth[length=2mm,width=2mm]}
+    ]
+        \node[state, label={[anchor=south east, font=\small]north east:{0000}}] (E0) at (0,0) {$S_1$};
+        \node[decision] (D0) at (0,-2) {\texttt{INT}};
+        \node[state, label={[anchor=south east, font=\small]north east:{0001}}] (E1) at (-4,-2) {$S_0$};
+        \node[decision] (D1) at (-4,-4) {\texttt{x}};
+        \node[state, label={[anchor=south east, font=\small]north east:{0010}}] (E2) at (4,-2) {$\overline{U_1}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{0011}}] (E3) at (-4,-6) {$\overline{U_0}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{0100}}] (E4) at (0,-6) {$S_1S_0$};
+        \node[state, label={[anchor=south east, font=\small]north east:{0101}}] (E5) at (4,-4.5) {$\overline{U_1}\overline{U_0}$};
+        \node[decision] (T0) at (-0,-8) {};
+        \node[state, label={[anchor=south east, font=\small]north east:{0110}}] (E6) at (-4,-10) {$S_1\overline{U_0}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{1000}}] (E8) at (4,-10) {$S_0\overline{U_1}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{0111}}] (E7) at (-8,-12.5) {$S_1\overline{U_1}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{1001}}] (E9) at (4,-12.5) {$S_0\overline{U_0}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{1010}}] (E10) at (0,-11.5) {$S_1S_0\overline{U_1}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{1011}}] (E11) at (0,-14.5) {$\overline{U_1}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{1100}}] (E12) at (-4,-18.5) {$\overline{U_0}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{1101}}] (E13) at (-4,-21) {$S_1S_0$};
+        \node[state, label={[anchor=south east, font=\small]north east:{1110}}] (E14) at (4,-18.5) {$\overline{U_0}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{1111}}] (E15) at (4,-21) {$S_1S_0$};
+        \node[decision] (D2) at (0,-17) {\texttt{y}};
+        \node[decision] (D3) at (-4,-12.5) {\texttt{INT}};
+
+        \draw[->] (E0) -- (D0);
+        \draw[->] (D0) -- node[above left, font=\scriptsize] {0} (E1);
+        \draw[->] (D0) -- node[above right, font=\scriptsize] {1} (E2);
+        \draw[->] (E1) -- (D1);
+        \draw[->] (D1) -- node[above right, font=\scriptsize] {1} (E3);
+        \draw[->] (D1) -| node[above right, font=\scriptsize] {0} (E4);
+        \draw[->] (E2) -- (E5);
+        \draw[->] (E3) -- (E4);
+        \draw[->] (E5) |- (E4);
+        \draw[->] (E4) -- (T0);
+        \draw[->] (T0) -| node[above left, font=\scriptsize] {} (E6);
+        \draw[->] (T0) -| node[above right, font=\scriptsize] {} (E8);
+        \draw[->] (T0) -- node[above right, font=\scriptsize] {} (E10);
+        \draw[->] (E6) -- (D3);
+        \draw[->] (D3) -- node[above right, font=\scriptsize] {0} (E7);
+        \draw[->] (D3) |- node[above right, font=\scriptsize] {1} (E11);
+        \draw[->] (E8) -- (E9);
+        \draw[->] (E9) |- (E11);
+        \draw[->] (E10) -- (E11);
+        \draw[->] (E11) -- (D2);
+        \draw[->] (D2) -| node[above left, font=\scriptsize] {1} (E12);
+        \draw[->] (D2) -| node[above right, font=\scriptsize] {0} (E14);
+        \draw[->] (E12) -- (E13);
+        \draw[->] (E14) -- (E15);
+        \draw[->] (E13.west) -- ++(-5,0) |- (E0);
+        \draw[->] (E15.east) -- ++(2,0) |- (E0);
+    \end{tikzpicture}
+    \end{adjustbox}
+    \caption{Carta ASM de 14 estados con entradas \texttt{INT} y \texttt{Qaux}.}
+    \label{fig:carta_asm_14_limpia}
+\end{figure}
+
+\subsection*{2. Diseño de la lógica interna.}
+
+Diseñe la lógica interna para que su secuenciador pueda ejecutar las instrucciones descritas anteriormente. Obtenga el contenido de la memoria de SU CARTA ASM para implementarlo en su secuenciador. Utilice el simulador para probar su implementación.
+
+\subsection*{3. Simulación en Waveform}
+
+Demuestre el correcto funcionamiento de su carta ASM SIMULANDOLO EN WAVEFORM y mostrándola a la profesora en el laboratorio.
+
+\section*{Conclusiones}
+
+\subsection*{Andrea Saldaña Navarrete - 320206384}
+
+
+\subsection*{Hansel Yael Tepal Briseño - 320078282}
+
+
+\subsection*{Luis Antonio Ugartechea González - 320223822}
+
+
+\input{template/biblio.tex}
+
+\end{document}
