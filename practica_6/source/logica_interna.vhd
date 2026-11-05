@@ -22,32 +22,32 @@ begin
 			nVECT <= '1';
 		elsif instruccion = "01" then -- Salto Condicional
 			if nCC = '0' then 
-				selector <= '1';
-				nPL <= '0';
+				selector <= '0'; -- Viene del incrementador (µPC)
+				nPL <= '1';
 				nMap <= '1';
 				nVECT <= '1';
 			elsif nCC = '1' then
-				selector <= '0';
-				nPL <= '1';
+				selector <= '1'; -- Salta a la dirección de Liga
+				nPL <= '0';      -- Activa PL
 				nMap <= '1';
 				nVECT <= '1';
 			end if;
 		elsif instruccion = "10" then -- Salto Transformacion
-			selector <= '1';
+			selector <= '1'; -- Salta a la dirección de Transformación
 			nPL <= '1';
-			nMap <= '0';
+			nMap <= '0';     -- Activa MAP
 			nVECT <= '1';
 		elsif instruccion = "11" then -- Salto Interrupcion
 			if nCC = '0' then 
-				selector <= '1';
-				nPL <= '1';
-				nMap <= '1';
-				nVECT <= '0';
-			elsif nCC = '1' then
-				selector <= '0';
+				selector <= '0'; -- Viene del incrementador (µPC)
 				nPL <= '1';
 				nMap <= '1';
 				nVECT <= '1';
+			elsif nCC = '1' then
+				selector <= '1'; -- Salta a la dirección de Interrupción
+				nPL <= '1';
+				nMap <= '1';
+				nVECT <= '0';    -- Activa VECT
 			end if;
 		end if;
 	end process;
