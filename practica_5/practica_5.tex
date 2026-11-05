@@ -1,0 +1,497 @@
+\documentclass[12pt, letterpaper]{article}
+
+\input{template/preamble.tex}
+
+\input{template/listings_config.tex}
+
+\usetikzlibrary{fit,tikzmark}
+
+\begin{document}
+
+\input{template/title_page.tex}
+
+\section*{Objetivo}
+
+Familiarizar al alumno en el conocimiento de construcción de máquinas de estados usando direccionamiento de memorias con el método de direccionamiento implícito.
+
+\section*{Introducción}
+
+En esta práctica se aborda la construcción de máquinas de estados utilizando memorias mediante el método de direccionamiento implícito. A diferencia de otras arquitecturas, este método se caracteriza por emplear un único campo de liga en la memoria de control. La lógica de transición funciona evaluando una variable de entrada (seleccionada mediante un campo de prueba), la cual se compara con un bit de control conocido como VF (Verdadero-Falso). Mediante compuertas lógicas XOR y XNOR, esta relación determina si el sistema toma una trayectoria de incremento sumando una unidad al estado presente, o si toma una trayectoria de carga para realizar un salto hacia la dirección almacenada en el campo de liga. Para esta implementación, se utilizó una variante arquitectónica que sustituye el contador tradicional por dos registros independientes: un registro µPC para almacenar el estado presente más uno, y un registro dedicado a la liga. Esta estructura es de gran importancia teórica y práctica, ya que constituye la base fundamental del secuenciador utilizado en la Unidad de Control de Procesos de una computadora.
+
+\section*{Desarrollo}
+
+\subsection*{1. Diseñe una carta ASM con las siguientes características:}
+
+\begin{itemize}
+    \item Estados: 6 hasta 16
+    \item Entradas: 3
+    \item Salidas: 4
+    \begin{itemize}
+        \item 2 con lógica estándar
+        \item 2 con lógica negada
+    \end{itemize}
+    \item Colocar al menos 3 salidas condiciones si se puede.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{firmado.pdf}
+    \caption{Carta ASM firmada por la profesora.}
+    \label{fig:carta_asm_10_limpia_firmada}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{adjustbox}{width=\textwidth}
+    \begin{tikzpicture}[
+        state/.style={draw, rounded corners=2pt, fill=blue!10, minimum width=2.8cm, minimum height=1.2cm, align=center, font=\small},
+        decision/.style={draw, diamond, aspect=2.1, fill=yellow!20, minimum width=1cm, minimum height=1cm, align=center, font=\small},
+        output/.style={draw, rounded corners=15pt, fill=gray!15, minimum width=2cm, minimum height=1cm, align=center, font=\small},
+        >={Stealth[length=2mm,width=2mm]}
+    ]
+        \node[state, label={[anchor=south east, font=\small]north east:{000}}] (E0) at (0,0) {$\overline{U_1}\overline{U_0}$};
+        \node[decision] (X0) at (0,-2) {\texttt{x}};
+        \node[output] (C0) at (-3,-2) {$S_1S_0$};
+        \node[state, label={[anchor=south east, font=\small]north east:{001}}] (E1) at (4,-2) {$S_0$};
+        \node[state, label={[anchor=south east, font=\small]north east:{010}}] (E2) at (4,-5) {};
+        \node[decision] (X1) at (4,-7) {\texttt{y}};
+        \node[output] (C1) at (4,-9) {$S_0\overline{U_0}$};
+        \node[output] (C2) at (1,-7) {$S_1\overline{U_1}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{011}}] (E3) at (4,-11) {};
+        \node[state, label={[anchor=south east, font=\small]north east:{100}}] (E4) at (4,-13) {$S_1S_0\overline{U_1}\overline{U_0}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{110}}] (E6) at (-1,-9) {};
+        \node[decision] (Z1) at (-1,-11) {\texttt{z}};
+        \node[output] (C3) at (-3.5,-11) {$S_1$};
+        \node[state, label={[anchor=south east, font=\small]north east:{111}}] (E7) at (-5,-14) {$\overline{U_1}$};
+        \node[state, label={[anchor=south east, font=\small]north east:{101}}] (E5) at (-1,-15) {$S_0\overline{U_0}$};
+
+        \draw[->] (E0) -- (X0);
+        \draw[] (X0) -- node[above, font=\scriptsize] {0} (C0);
+        \draw[->] (C0) |- (E0);
+        \draw[->] (X0) -- node[above, font=\scriptsize] {1} (E1);
+        \draw[->] (E1) -- (E2);
+        \draw[->] (E2) -- (X1);
+        \draw[] (X1) -- node[right, font=\scriptsize] {1} (C1);
+        \draw[] (X1) -- node[above, font=\scriptsize] {0} (C2);
+        \draw[->] (C1) -- (E3);
+        \draw[->] (E3) -- (E4);
+        \draw[->] (C2) -| (E6);
+        \draw[->] (E6) -- (Z1);
+        \draw[] (Z1) -- node[above, font=\scriptsize] {0} (C3);
+        \draw[->] (Z1) -- node[right, font=\scriptsize] {1} (E5);
+        \draw[->] (C3) -| (E7);
+        \draw[->] (E7.west) -- ++(-1.5,0) |- (E0.north west);
+        \draw[->] (E5.east) -- ++(+6,0) |- (E1);
+        \draw[->] (E4) -- ++(-2,0) |- (E5.north east);
+        % \draw[->] (E4) -- (E5);
+    \end{tikzpicture}
+    \end{adjustbox}
+    \caption{Carta ASM de 8 estados con direccionamiento Implícito.}
+    \label{fig:carta_asm_10_limpia}
+\end{figure}
+
+\subsubsection*{2. Encuentre el tamaño de la memoria necesaria y el contenido de memoria utilizando el direccionamiento entrada-estado.}
+
+Encuentre el tamaño de la memoria necesaria y el contenido de memoria utilizando el direccionamiento por trayectoria. Recuerde que antes de construir la tabla se debe asignar a cada estado de la carta ASM una representación binaria. Así mismo, recuerde que para cada estado es necesario considerar todas las posibles combinaciones de las variables de entrada, aun cuando algunas de ellas no se utilicen en determinado estado.
+
+\subsection*{Cálculo del tamaño de memoria}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{diagramaImplicitoModificado.png}
+    \caption{Esquema del Direccionamiento Implícito.}
+    \label{fig:diagrama_modificado}
+\end{figure}
+
+\textbf{Tamaño de memoria}
+
+\[
+2^n \cdot m
+\]
+
+En donde:
+\begin{itemize}
+    \item $n$ = número de bits del estado presente.
+    \item $m$ = prueba + liga falsa + liga verdadera + salida falsa + salida verdadera.
+\end{itemize}
+
+En esta máquina se tienen 10 estados. Por lo tanto, se necesitan 4 bits para representarlos, ya que $2^4=16$ combinaciones posibles.
+
+\[
+n = 4\text{ bits}
+\]
+
+La dirección de memoria tendrá 4 bits y podrá seleccionar 16 localidades. Para calcular la longitud de la palabra ($m$), se suman los bits de los campos requeridos por la arquitectura:
+
+\begin{itemize}
+    \item \textbf{Prueba:} 2 bits (para seleccionar entre las entradas $w=00, x=01, y=10, z=11$).
+    \item \textbf{Liga Falsa:} 4 bits (estado siguiente si la evaluación es 0).
+    \item \textbf{Liga Verdadera:} 4 bits (estado siguiente si la evaluación es 1).
+    \item \textbf{Salida Falsa:} 4 bits (estado de las salidas $S_1, S_0, \overline{U_1}, \overline{U_0}$ si la evaluación es 0).
+    \item \textbf{Salida Verdadera:} 4 bits (estado de las salidas si la evaluación es 1).
+\end{itemize}
+
+\[
+m = 2 + 4 + 4 + 4 + 4 = 18\text{ bits}
+\]
+
+Por lo tanto, el tamaño de memoria necesario es:
+
+\begin{tcolorbox}[colback=gray!20,colframe=LimeGreen!75!black]
+\[
+2^4\cdot 18 = 16\cdot 18 = 288\text{ bits}
+\]
+\end{tcolorbox}
+
+\subsection*{Contenido de la memoria}
+
+\begin{table}[H]
+\renewcommand{\arraystretch}{1.2}
+\begin{center}
+    \begin{adjustbox}{width=\textwidth}
+    \begin{tabular}{|ccc|cc|c|ccc|cccc|cccc|}
+    \hline
+    \rowcolor{black!80}
+    \multicolumn{3}{|c|}{\textcolor{white}{\textbf{Estado Presente}}} & \multicolumn{2}{c|}{\textcolor{white}{\textbf{Prueba}}} & \textcolor{white}{\textbf{VF}} & \multicolumn{3}{c|}{\textcolor{white}{\textbf{Liga}}} & \multicolumn{4}{c|}{\textcolor{white}{\textbf{Salidas Carga}}} & \multicolumn{4}{c|}{\textcolor{white}{\textbf{Salidas Inc.}}}\\
+    \hline
+    \rowcolor{black!80}
+    \textcolor{white}{\textbf{$P_2(t)$}} & \textcolor{white}{\textbf{$P_1(t)$}} & \textcolor{white}{\textbf{$P_0(t)$}} & \textcolor{white}{\textbf{$K_1$}} & \textcolor{white}{\textbf{$K_0$}} & &\textcolor{white}{\textbf{$L_2$}} & \textcolor{white}{\textbf{$L_1$}} & \textcolor{white}{\textbf{$L_0$}} & \textcolor{white}{\textbf{$S_1$}} & \textcolor{white}{\textbf{$S_0$}} & \textcolor{white}{\textbf{$\overline{U_1}$}} & \textcolor{white}{\textbf{$\overline{U_0}$}} & \textcolor{white}{\textbf{$S_1$}} & \textcolor{white}{\textbf{$S_0$}} & \textcolor{white}{\textbf{$\overline{U_1}$}} & \textcolor{white}{\textbf{$\overline{U_0}$}} \\
+    \hline
+    0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 \\
+    \hline
+    0 & 0 & 1 & * & * & * & 0 & 1 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 \\
+    \hline
+    0 & 1 & 0 & 0 & 1 & 0 & 1 & 1 & 0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 \\
+    \hline
+    0 & 1 & 1 & * & * & * & 1 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 \\
+    \hline
+    1 & 0 & 0 & * & * & * & 1 & 0 & 1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 \\
+    \hline
+    1 & 0 & 1 & * & * & * & 0 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 \\
+    \hline
+    1 & 1 & 0 & 1 & 0 & 1 & 1 & 0 & 1 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{ForestGreen!90}1 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 & \cellcolor{LimeGreen}1 \\
+    \hline
+    1 & 1 & 1 & * & * & * & 0 & 0 & 0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}0 & \cellcolor{ForestGreen!90}1 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}0 & \cellcolor{LimeGreen}1 \\
+    \hline
+    \end{tabular}
+    \end{adjustbox}
+\end{center}
+\caption{Tabla de transiciones y salidas de la máquina de estados.}
+\label{tab:tabla_transiciones_estados_salidas_1}
+\end{table}
+
+
+\subsection*{3. Implementación en Quartus del direccionamiento implícito.}
+
+Una vez que haya obtenido el contenido de memoria, implemente el direccionamiento implícito utilizando el software de desarrollo Quartus y escriba el contenido de memoria obtenido.
+
+\subsubsection*{Descripción de la implementación}
+
+La implementación se realizó en Quartus Prime utilizando el archivo
+\texttt{practica\_5.bdf} como entidad de nivel superior. El diseño se organizó
+en bloques VHDL independientes: un divisor de frecuencia, un registro de
+estado, una memoria ROM, un divisor de datos, un multiplexor de entradas, un
+incrementador y dos multiplexores de selección: uno para la siguiente liga y
+otro para las salidas.
+
+El registro de estado utiliza tres bits, por lo que puede representar los ocho
+estados de la máquina. Su salida se conecta a la entrada de dirección de la
+memoria ROM. Para cada estado, la memoria entrega una palabra de 14 bits con
+el formato
+
+\[
+\underbrace{\text{Prueba}}_{2\ \text{bits}}\,
+\underbrace{\text{VF}}_{1\ \text{bit}}\,
+\underbrace{\text{Liga}}_{3\ \text{bits}}\,
+\underbrace{\text{Salidas Inc.}}_{4\ \text{bits}}\,
+\underbrace{\text{Salidas Carga}}_{4\ \text{bits}}.
+\]
+
+El bloque \texttt{divisor\_datos} separa esta palabra en sus campos. El
+multiplexor \texttt{mux5} selecciona la entrada física que corresponde al
+campo \texttt{Prueba}; las entradas $X$, $Y$ y $Z$ corresponden a las
+variables externas y $W$ se conecta a un nivel lógico alto para representar
+la condición constante. La señal obtenida controla los multiplexores de
+liga y de salida. Finalmente, el incrementador genera el estado siguiente
+secuencial, mientras que \texttt{mux1X2X1\_3} selecciona entre el estado
+incrementado y la liga almacenada en memoria.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{practica_5_quartus.png}
+    \caption{Esquemático de la implementación completa en Quartus.}
+    \label{fig:practica_5_quartus}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{contaor_quartus.png}
+    \caption{Esquemático del contador y registro utilizados para recorrer los estados.}
+    \label{fig:contador_quartus}
+\end{figure}
+
+\subsubsection*{Código de los módulos}
+
+El divisor de frecuencia reduce la frecuencia del reloj de la tarjeta para
+que los cambios de estado puedan observarse durante la prueba física.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Divisor de frecuencia utilizado en Quartus.},
+    label={lst:p5_div_frec}
+]{source/div_frec.vhd}
+
+El registro conserva el estado presente y lo actualiza en cada flanco de
+subida del reloj dividido. El reinicio activo en bajo devuelve la máquina al
+estado \texttt{000}.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Registro de estado de tres bits.},
+    label={lst:p5_register3}
+]{source/register3.vhd}
+
+La memoria ROM contiene las ocho palabras de control obtenidas a partir de la
+tabla de estados. La dirección corresponde directamente al estado presente.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Memoria ROM con el contenido de la máquina.},
+    label={lst:p5_memory}
+]{source/memory.vhd}
+
+El divisor de datos desempaqueta la palabra de 14 bits para alimentar los
+bloques de selección.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Separación de los campos de la palabra de memoria.},
+    label={lst:p5_divisor_datos}
+]{source/divisor_datos.vhd}
+
+El multiplexor de entradas selecciona la condición que debe evaluarse según
+el campo \texttt{Prueba} almacenado en la ROM.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Multiplexor de selección de entradas.},
+    label={lst:p5_mux5}
+]{source/mux5.vhd}
+
+El incrementador produce el siguiente estado secuencial. El multiplexor de
+tres bits permite seleccionar entre este valor y la liga proporcionada por
+la memoria.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Incrementador del estado.},
+    label={lst:p5_incrementador}
+]{source/incrementador.vhd}
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Multiplexor para seleccionar la siguiente liga.},
+    label={lst:p5_mux1x2x1}
+]{source/mux1X2X1.vhd}
+
+Por último, el multiplexor de cuatro bits selecciona el grupo de salidas
+correspondiente a la condición evaluada, entre las salidas de incremento y
+las salidas de carga.
+
+\lstinputlisting[
+    style=vhdl,
+    caption={Multiplexor de las salidas de la máquina.},
+    label={lst:p5_mux1x2x1_3}
+]{source/mux1X2X1_3.vhd}
+
+\section*{Discusión de Resultados}
+
+\subsection*{5. Simule su diseño para probar su funcionamiento. Recuerden que en sus simulaciones debe aparecer el contenido de la memoria además del estado presente.}
+
+Para todas las simulaciones, se modifico el archivo \texttt{divisor\_frecuencia.vhd} a un valor muy pequeño para poder observar como cambia el estado presente y las salidas de la máquina. Se realizaron tres simulaciones con diferentes entradas para observar el comportamiento de la máquina.
+
+De igual forma, en cada simulación se incluyo el primer ciclo cuando la entrada X es 0, para observar el comportamiento de la máquina cuando se encuentra en el estado inicial.
+
+\subsubsection*{Simulación 1}
+
+En esta simulación se consideraron las entradas \(\texttt{X=1, Y=0, Z = 0 y W = 1}\).
+\begin{enumerate}
+    \item[\textcolor{red}{sec-1:}] Estado: \texttt{000} \(\rightarrow\) Salida: \texttt{0000} \(\rightarrow\) Estado siguiente: \texttt{000} \(\rightarrow\)
+    \item[\textcolor{red}{sec-2:}] Estado: \texttt{000} \(\rightarrow\) Salida: \texttt{1100} \(\rightarrow\) Estado siguiente: \texttt{001} \(\rightarrow\)
+    \item[\textcolor{red}{sec-3:}] Estado: \texttt{001} \(\rightarrow\) Salida: \texttt{0111} \(\rightarrow\) Estado siguiente: \texttt{010} \(\rightarrow\)
+    \item[\textcolor{red}{sec-4:}] Estado: \texttt{110} \(\rightarrow\) Salida: \texttt{1011} \(\rightarrow\) Estado siguiente: \texttt{111} \(\rightarrow\)
+    \item[\textcolor{red}{sec-5:}] Estado: \texttt{110} \(\rightarrow\) Salida: \texttt{1011} \(\rightarrow\) Estado siguiente: \texttt{111} \(\rightarrow\)
+    \item[\textcolor{red}{sec-6:}] Estado: \texttt{111} \(\rightarrow\) Salida: \texttt{0001} \(\rightarrow\) Estado siguiente: \texttt{000} \(\rightarrow\)
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        % Nodo de la imagen base
+        \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+            {\includegraphics[width=\textwidth]{sim_1.png}};
+
+        % Scope con coordenadas relativas (0 a 1) para un ajuste milimétrico e independiente del tamaño de página.
+        \begin{scope}[x={(tarjeta.south east)},y={(tarjeta.north west)}]
+
+            % Definimos la altura de las cajas rojas para cubrir todas las señales
+            \def\ybot{0.00}
+            \def\ytop{0.90}
+
+            % Trazos de los recuadros rojos calculados a partir de los tiempos de simulación (ns)
+            \draw[red, thick] (0.1078, \ytop) rectangle (0.1788, \ybot); % sec-1  [0ns - 100ns]
+            \draw[red, thick] (0.1788, \ytop) rectangle (0.3070, \ybot); % sec-2  [100ns - 120ns]
+            \draw[red, thick] (0.3070, \ytop) rectangle (0.4502, \ybot); % sec-3  [120ns - 140ns]
+            \draw[red, thick] (0.4502, \ytop) rectangle (0.5934, \ybot); % sec-4  [140ns - 160ns]
+            \draw[red, thick] (0.5934, \ytop) rectangle (0.7366, \ybot); % sec-5  [160ns - 180ns]
+            \draw[red, thick] (0.7366, \ytop) rectangle (0.8798, \ybot); % sec-6  [180ns - 200ns]
+
+            % Posición vertical para las etiquetas de texto
+            \def\ytext{0.03}
+            
+            % Etiquetas centradas en el medio de cada recuadro (calculadas automáticamente)
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.1433, \ytext) {sec-1};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.2429, \ytext) {sec-2};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.3711, \ytext) {sec-3};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.4993, \ytext) {sec-4};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.6649, \ytext) {sec-5};
+            \node[text=red, font=\fontsize{5}{0}\selectfont, align=center] at (0.8082, \ytext) {sec-6};
+
+        \end{scope}
+    \end{tikzpicture}
+    \caption{Simulación 1 de la máquina de estados en ModelSim, segmentada por transiciones de estado.}
+    \label{fig:simulacion_sec_4}
+\end{figure}
+
+Con esta simulación validamos que la maquina de estados funciona correctamente, con las entradas señaladas y se obtuvierón las salidas esperados en cada transición de estado.
+
+\subsubsection*{Simulación 2}
+
+En esta simulación se consideraron las entradas \(\texttt{X=1, Y=0, Z = 1 y W = 1}\).
+
+
+\begin{enumerate}
+    \item[\textcolor{red}{sec-1:}] Estado: \texttt{000} \(\rightarrow\) Salida: \texttt{0000} \(\rightarrow\) Estado siguiente: \texttt{000} \(\rightarrow\)
+    \item[\textcolor{red}{sec-2:}] Estado: \texttt{000} \(\rightarrow\) Salida: \texttt{1100} \(\rightarrow\) Estado siguiente: \texttt{001} \(\rightarrow\)
+    \item[\textcolor{red}{sec-3:}] Estado: \texttt{001} \(\rightarrow\) Salida: \texttt{0111} \(\rightarrow\) Estado siguiente: \texttt{010} \(\rightarrow\)
+    \item[\textcolor{red}{sec-4:}] Estado: \texttt{010} \(\rightarrow\) Salida: \texttt{1001} \(\rightarrow\) Estado siguiente: \texttt{110} \(\rightarrow\)
+    \item[\textcolor{red}{sec-5:}] Estado: \texttt{110} \(\rightarrow\) Salida: \texttt{0011} \(\rightarrow\) Estado siguiente: \texttt{101} \(\rightarrow\)
+    \item[\textcolor{red}{sec-6:}] Estado: \texttt{101} \(\rightarrow\) Salida: \texttt{0110} \(\rightarrow\) Estado siguiente: \texttt{001} \(\rightarrow\)
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        % Nodo de la imagen base
+        \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+            {\includegraphics[width=\textwidth]{sim_2.png}};
+
+        % Scope con coordenadas relativas (0 a 1) para un ajuste milimétrico e independiente del tamaño de página.
+        \begin{scope}[x={(tarjeta.south east)},y={(tarjeta.north west)}]
+
+            % Definimos la altura de las cajas rojas para cubrir todas las señales
+            \def\ybot{0.00}
+            \def\ytop{0.90}
+
+            % Trazos de los recuadros rojos calculados a partir de los tiempos de simulación (ns)
+            \draw[blue, thick] (0.1078, \ytop) rectangle (0.1788, \ybot); % sec-1  [0ns - 100ns]
+            \draw[blue, thick] (0.1788, \ytop) rectangle (0.3070, \ybot); % sec-2  [100ns - 120ns]
+            \draw[blue, thick] (0.3070, \ytop) rectangle (0.4502, \ybot); % sec-3  [120ns - 140ns]
+            \draw[blue, thick] (0.4502, \ytop) rectangle (0.5934, \ybot); % sec-4  [140ns - 160ns]
+            \draw[blue, thick] (0.5934, \ytop) rectangle (0.7366, \ybot); % sec-5  [160ns - 180ns]
+            \draw[blue, thick] (0.7366, \ytop) rectangle (0.8798, \ybot); % sec-6  [180ns - 200ns]
+
+            % Posición vertical para las etiquetas de texto
+            \def\ytext{0.03}
+            
+            % Etiquetas centradas en el medio de cada recuadro (calculadas automáticamente)
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.1433, \ytext) {sec-1};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.2429, \ytext) {sec-2};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.3711, \ytext) {sec-3};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.4993, \ytext) {sec-4};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.6649, \ytext) {sec-5};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.8082, \ytext) {sec-6};
+
+        \end{scope}
+    \end{tikzpicture}
+    \caption{Simulación 2 de la máquina de estados en ModelSim, segmentada por transiciones de estado.}
+    \label{fig:simulacion_sec_4}
+\end{figure}
+
+En este camino de simulación, se validó la segunda ruta que nuestra máquina de estados puede tomar. En este no se retorna al estado inicial, si no que regresa al estado \texttt{001} y se repite el ciclo de estados \texttt{001} $\rightarrow$ \texttt{010} $\rightarrow$ \texttt{110} $\rightarrow$ \texttt{101} $\rightarrow$ \texttt{001}.
+
+\subsubsection*{Simulacion 3}
+
+En esta simulación se consideraron las entradas \(\texttt{X=1, Y=1, Z = 1 y W = 1}\). Notar que en este caso el valor de entrada de Z, en realidad no afecta el compirtamiento de este recorrido de la maquina de estados, por lo que se puede considerar que la entrada Z es irrelevante para este camino de simulación.
+
+\begin{enumerate}
+    \item[\textcolor{red}{sec-1:}] Estado: \texttt{000} \(\rightarrow\) Salida: \texttt{0000} \(\rightarrow\) Estado siguiente: \texttt{000} \(\rightarrow\)
+    \item[\textcolor{red}{sec-2:}] Estado: \texttt{000} \(\rightarrow\) Salida: \texttt{1100} \(\rightarrow\) Estado siguiente: \texttt{001} \(\rightarrow\)
+    \item[\textcolor{red}{sec-3:}] Estado: \texttt{001} \(\rightarrow\) Salida: \texttt{0111} \(\rightarrow\) Estado siguiente: \texttt{010} \(\rightarrow\)
+    \item[\textcolor{red}{sec-4:}] Estado: \texttt{010} \(\rightarrow\) Salida: \texttt{0110} \(\rightarrow\) Estado siguiente: \texttt{011} \(\rightarrow\)
+    \item[\textcolor{red}{sec-5:}] Estado: \texttt{011} \(\rightarrow\) Salida: \texttt{0011} \(\rightarrow\) Estado siguiente: \texttt{100} \(\rightarrow\)
+    \item[\textcolor{red}{sec-6:}] Estado: \texttt{100} \(\rightarrow\) Salida: \texttt{1100} \(\rightarrow\) Estado siguiente: \texttt{101} \(\rightarrow\)
+    \item[\textcolor{red}{sec-7:}] Estado: \texttt{101} \(\rightarrow\) Salida: \texttt{0110} \(\rightarrow\) Estado siguiente: \texttt{001} \(\rightarrow\)
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}
+        % Nodo de la imagen base
+        \node[anchor=south west, inner sep=0] (tarjeta) at (0,0)
+            {\includegraphics[width=\textwidth]{sim_3.png}};
+
+        % Scope con coordenadas relativas (0 a 1) para un ajuste milimétrico e independiente del tamaño de página.
+        \begin{scope}[x={(tarjeta.south east)},y={(tarjeta.north west)}]
+
+            % Definimos la altura de las cajas rojas para cubrir todas las señales
+            \def\ybot{0.00}
+            \def\ytop{0.90}
+
+            % Trazos de los recuadros rojos calculados a partir de los tiempos de simulación (ns)
+            \draw[blue, thick] (0.1078, \ytop) rectangle (0.1788, \ybot); % sec-1  [0ns - 100ns]
+            \draw[blue, thick] (0.1788, \ytop) rectangle (0.2820, \ybot); % sec-2  [100ns - 120ns]
+            \draw[blue, thick] (0.2820, \ytop) rectangle (0.4052, \ybot); % sec-3  [120ns - 140ns]
+            \draw[blue, thick] (0.4052, \ytop) rectangle (0.5284, \ybot); % sec-4  [140ns - 160ns]
+            \draw[blue, thick] (0.5284, \ytop) rectangle (0.6516, \ybot); % sec-5  [160ns - 180ns]
+            \draw[blue, thick] (0.6516, \ytop) rectangle (0.7748, \ybot); % sec-6  [180ns - 200ns]
+            \draw[blue, thick] (0.7748, \ytop) rectangle (0.8980, \ybot); % sec-7  [200ns - 220ns]
+
+            % Posición vertical para las etiquetas de texto
+            \def\ytext{0.03}
+            
+            % Etiquetas centradas en el medio de cada recuadro (calculadas automáticamente)
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.1433, \ytext) {sec-1};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.2304, \ytext) {sec-2};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.3436, \ytext) {sec-3};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.4668, \ytext) {sec-4};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.5900, \ytext) {sec-5};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.7132, \ytext) {sec-6};
+            \node[text=blue, font=\fontsize{5}{0}\selectfont, align=center] at (0.8364, \ytext) {sec-7};
+
+        \end{scope}
+    \end{tikzpicture}
+    \caption{Simulación 2 de la máquina de estados en ModelSim, segmentada por transiciones de estado.}
+    \label{fig:simulacion_sec_4}
+\end{figure}
+
+En esta simulación se validó la tercera ruta que nuestra máquina de estados puede tomar. Concluyendo que todos los caminos de la máquina de estados funcionan correctamente y se obtuvieron las salidas esperadas en cada transición de estado.
+
+\section*{Conclusiones}
+
+\subsection*{Andrea Saldaña Navarrete - 320206384}
+
+Durante el desarrollo y simulación de la máquina de estados, se comprobó que el éxito del direccionamiento implícito depende de una transcripción rigurosa de la Tabla de Transiciones a la memoria ROM. Se identificó que un error tipográfico en el orden de concatenación de los bits de salida (colocando las salidas de incremento antes que las de carga) puede alterar por completo el comportamiento del sistema, provocando que la máquina salte de estado en lugar de mantenerse en un ciclo continuo. Esto demostró que la arquitectura de hardware diseñada funciona correctamente y procesa las señales de los multiplexores de manera exacta, pero exige que la programación de la memoria respete estrictamente el formato de palabra definido (Prueba \& VF \& Liga \& Salidas\_Carga \& Salidas\_Inc) para reflejar fielmente la carta ASM.
+
+\subsection*{Hansel Yael Tepal Briseño - 320078282}
+
+El diseño de la máquina mediante direccionamiento implícito presentó un desafío arquitectónico interesante al requerir transiciones incondicionales (como el paso del estado 101 al 001) dentro de un sistema diseñado para siempre evaluar una entrada externa a través de un multiplexor. La solución implementada consistió en utilizar una variable de entrada constante configurada siempre en alto (W=1). Al instruir a la memoria para que el multiplexor evaluara esta señal constante, se forzó al sistema a tomar de manera predecible la ruta de la liga falsa, logrando un salto incondicional sin necesidad de modificar el diseño de los bloques de hardware. Asimismo, se demostró que este comportamiento incondicional también puede lograrse igualando las salidas de carga e incremento y apuntando la liga al estado inmediatamente siguiente, confirmando la flexibilidad del método.
+
+\subsection*{Luis Antonio Ugartechea González - 320223822}
+
+En la construcción de la máquina de estados, el método de direccionamiento implícito demostró su eficiencia al reducir los requerimientos de almacenamiento utilizando un único campo de liga en la memoria. La implementación exitosa en hardware requirió un diseño altamente modular, donde una sola palabra de control contiene toda la instrucción de transición y debe ser desempaquetada por un módulo divisor de datos. Esta separación de la información comprobó cómo la arquitectura coordina armónicamente la lógica combinacional y los multiplexores: evaluando dinámicamente la entrada seleccionada contra el bit Verdadero-Falso (VF) para decidir instantáneamente si el sistema toma la trayectoria de incremento hacia el siguiente estado secuencial, o la trayectoria de carga para saltar a la dirección del registro de liga.
+
+\input{template/biblio.tex}
+
+\end{document}
